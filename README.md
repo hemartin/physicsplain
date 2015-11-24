@@ -5,7 +5,7 @@ physicsplain is a simple 2D physics library written in JavaScript.  The library 
 This library is heavily inspired by Erin Catto's ![GDC slides](http://box2d.org/downloads/) and ![Box2D](http://box2d.org/).  However, it does not provide all functionality that Box2D offers (see limitations below).
 
 ## Examples
-Below are a few examples as GIF animations.  Check out the [demo page](https://hemartin.github.com/physicsplain) for JavaScript examples.
+Below are a few examples as GIF animations.  Check out the [JavaScript examples](https://hemartin.github.com/physicsplain).
 
 ### Example 1
 ![example1](https://cloud.githubusercontent.com/assets/344615/11329481/845124be-9151-11e5-9b1d-2c3a4261290f.gif)
@@ -29,6 +29,6 @@ Consider using Box2D or other physics libraries if your project is impacted by t
 This project was inspired by the following projects and websites:
 - Erin Catto's [GDC slides](http://box2d.org/downloads/) and [Box2D](http://box2d.org/)
 - Physics simulations at [myPhysicsLab](http://www.myphysicslab.com/)
-- Separating phyisics and graphics using [Fix Your Timestep!](http://gafferongames.com/game-physics/fix-your-timestep/)
-- Union-Find in [Algorithms, 4th Edition](http://algs4.cs.princeton.edu/home/) and [Wikipedia](https://en.wikipedia.org/wiki/Disjoint-set_data_structure)
+- Separating physics and graphics from [Fix Your Timestep!](http://gafferongames.com/game-physics/fix-your-timestep/)
+- Union-Find algorith from [Algorithms, 4th Edition](http://algs4.cs.princeton.edu/home/) and [Wikipedia](https://en.wikipedia.org/wiki/Disjoint-set_data_structure)
 - Colors from [swiss style color picker](http://swisscolors.net/)
