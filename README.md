@@ -20,8 +20,8 @@ Below are a few examples as GIF animations.  Check out the [JavaScript examples]
 Currently only rectangles are supported by this library.
 
 Sometimes the following issues occur:
-- Object collisions are not resolved properly, resulting in objects moving into each other.
-- Inelastic collisions and constant forces (e.g., gravity) do not go too well together, also resulting in object moving into each other.
+- Object collisions are not resolved properly, which results in objects moving into each other.
+- Inelastic collisions and constant forces (e.g., gravity) do not go well together, which also results in object moving into each other.
 
 Consider using Box2D or other physics libraries if your project is impacted by these limitations.
 
@@ -30,5 +30,5 @@ This project was inspired by the following projects and websites:
 - Erin Catto's [GDC slides](http://box2d.org/downloads/) and [Box2D](http://box2d.org/)
 - Physics simulations at [myPhysicsLab](http://www.myphysicslab.com/)
 - Separating physics and graphics from [Fix Your Timestep!](http://gafferongames.com/game-physics/fix-your-timestep/)
-- Union-Find algorith from [Algorithms, 4th Edition](http://algs4.cs.princeton.edu/home/) and [Wikipedia](https://en.wikipedia.org/wiki/Disjoint-set_data_structure)
+- Union-Find algorithm from [Algorithms, 4th Edition](http://algs4.cs.princeton.edu/home/) and [Wikipedia](https://en.wikipedia.org/wiki/Disjoint-set_data_structure)
 - Colors from [swiss style color picker](http://swisscolors.net/)
