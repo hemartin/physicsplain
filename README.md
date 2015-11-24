@@ -5,7 +5,7 @@ physicsplain is a simple 2D physics library written in JavaScript.  The library 
 This library is heavily inspired by Erin Catto's ![GDC slides](http://box2d.org/downloads/) and ![Box2D](http://box2d.org/).  However, it does not provide all functionality that Box2D offers (see limitations below).
 
 ## Examples
-Below are a few examples as GIF animations.  Check out the [JavaScript examples](https://hemartin.github.com/physicsplain).
+Below are a few examples as GIF animations.  Check out the [JavaScript examples](http://hemartin.github.io/physicsplain/).
 
 ### Example 1
 ![example1](https://cloud.githubusercontent.com/assets/344615/11329481/845124be-9151-11e5-9b1d-2c3a4261290f.gif)
