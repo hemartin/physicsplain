@@ -13,6 +13,9 @@
  * @author Martin Hentschel, @hemasail
  */
 
+var canvasWidth = 500;
+var canvasHeight = 260;
+
 function createExample1() {
     // DOM elements
     var canvas = document.getElementById("canvas1");
@@ -150,7 +153,10 @@ function createExample3() {
         colors: colors
     };
 }
-// animation
+
+/*
+ * Main loop. Initializes examples, advances physics, and updates graphics.
+ */
 window.onload = function() {
     // initialize examples
     var examples = [
@@ -162,14 +168,15 @@ window.onload = function() {
     // bind key down and key up events to first body of example 3
     window.onkeydown = onKeyDown(examples[2].state.movableBodies[0]);
     window.onkeyup = onKeyUp(examples[2].state.movableBodies[0]);
+    
+    // initially resize canvas, and also listen for resize events
+    resizeCanvas(examples);
+    window.addEventListener("resize", function(e) {
+        resizeCanvas(examples);
+    });
 
     // fixed timestep to advance physics
     var fixedTimestep = 10; // in ms
-    
-    var encoder = new GIFEncoder();
-    encoder.setRepeat(0); //auto-loop
-    encoder.setDelay(40);
-    console.log(encoder.start());
 
     // step function is called every time the browser refreshes the UI
     var start = 0;
@@ -261,7 +268,9 @@ function ty(canvas, y) {
     return -canvas.width / 2 * y + canvas.height / 2;
 }
 
-// process keyboard inputs for example 3
+/*
+ * Processes key down events for Example 3.
+ */
 var direction = new Vector(0, 0);
 var thrust = 3;
 function onKeyDown(body) {
@@ -289,6 +298,9 @@ function onKeyDown(body) {
     };
 }
 
+/*
+ * Processes key up events for Example 3.
+ */
 function onKeyUp(body) {
     return function(e) {
         switch (e.keyCode) {
@@ -312,4 +324,18 @@ function onKeyUp(body) {
         // set force to body, length of force vector equals thrust
         body.force.set(direction).normalize().scale(thrust);
     };
+}
+
+/*
+ * Resizes all canvases to fit screen width in case browser window is thinner than canvasWidth.
+ */
+function resizeCanvas(examples) {
+    var w = Math.min(window.innerWidth, canvasWidth);
+    var h = canvasHeight * w / canvasWidth;
+    examples.forEach(function(example) {
+        if (example.canvas.width !== w) {
+            example.canvas.width = w;
+            example.canvas.height = h;
+        }
+    });
 }
