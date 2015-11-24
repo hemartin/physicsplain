@@ -1,0 +1,40 @@
+body {
+    margin: 0;
+}
+h1, h2 {
+    font-family: helvetica, arial;
+    color: #303030;
+}
+h2 {
+    margin: 2em 0 0 0;
+}
+p {
+    margin: 0.7em 0 0.7em 0;
+}
+#content {
+    width: 700px;
+    margin: auto;
+    padding: 10px 0 40px 20px;
+}
+
+@media only screen and (max-device-width: 700px), only screen and (max-width: 700px) {
+    #content {
+        width: 100%;
+        margin: auto;
+        padding: 10px 0 40px 20px;
+    }
+}
+
+@media only screen and (max-device-width: 520px), only screen and (max-width: 520px) {
+    #content {
+        width: 100%;
+        margin: auto;
+        padding: 10px 0 40px 0;
+    }
+    h1, h2, p {
+        padding-left: 10px;
+    }
+    h2 {
+        margin: 1em 0 0 0;
+    }
+}
