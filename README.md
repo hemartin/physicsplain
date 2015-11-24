@@ -5,21 +5,15 @@ physicsplain is a simple 2D physics library written in JavaScript.  The library 
 This library is heavily inspired by Erin Catto's ![GDC slides](http://box2d.org/downloads/) and ![Box2D](http://box2d.org/).  However, it does not provide all functionality that Box2D offers (see limitations below).
 
 ## Examples
-Below are a few examples as GIF animations.  If you want to see a live JavaScript demo, go to the demo page here.
+Below are a few examples as GIF animations.  Check out the [demo page](https://hemartin.github.com/physicsplain) for JavaScript examples.
 
 ### Example 1
-An object forces other objects out of its way.
-
 ![example1](https://cloud.githubusercontent.com/assets/344615/11329481/845124be-9151-11e5-9b1d-2c3a4261290f.gif)
 
 ### Example 2
-Objects are falling down due to gravitational force.
-
 ![example2](https://cloud.githubusercontent.com/assets/344615/11329511/cea78cba-9151-11e5-8b9a-c22cf92bd4b0.gif)
 
 ### Example 3
-Example 3 lets you used the keyboard to move the small, light square.  This shows how user input is translated into forces that move an object.
-
 ![example3](https://cloud.githubusercontent.com/assets/344615/11329512/d0f392d4-9151-11e5-80f3-49550d0b1163.gif)
 
 ## Known Limitations
