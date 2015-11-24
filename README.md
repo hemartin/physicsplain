@@ -14,6 +14,8 @@ Below are a few examples as GIF animations.  Check out the [JavaScript examples]
 ![example2](https://cloud.githubusercontent.com/assets/344615/11329511/cea78cba-9151-11e5-8b9a-c22cf92bd4b0.gif)
 
 ### Example 3
+Example 3 supports keyboard input, check out the [JavaScript examples](http://hemartin.github.io/physicsplain/).
+
 ![example3](https://cloud.githubusercontent.com/assets/344615/11329512/d0f392d4-9151-11e5-80f3-49550d0b1163.gif)
 
 ## Known Limitations
