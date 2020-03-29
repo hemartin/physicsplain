@@ -1,4 +1,3 @@
-import { Body } from './body.js'
 import { Collision } from './collision.js'
 
 /**
@@ -71,11 +70,10 @@ class State {
     const movableBodiesCount = this.movableBodies.length
     for (let i = 0; i < movableBodiesCount - 1; i++) {
       for (let j = i + 1; j < movableBodiesCount; j++) {
-        const newCollision = Body.collide(
-          this,
-          this.movableBodies[i],
+        const newCollision = this.movableBodies[i].collide(
           this.movableBodies[j],
-          timestep
+          timestep,
+          this.restitution
         )
         if (newCollision !== null) {
           collisions.push(newCollision)
@@ -87,11 +85,10 @@ class State {
     const fixedBodiesCount = this.fixedBodies.length
     for (let i = 0; i < movableBodiesCount; i++) {
       for (let j = 0; j < fixedBodiesCount; j++) {
-        const newCollision = Body.collide(
-          this,
+        const newCollision = this.fixedBodies[j].collide(
           this.movableBodies[i],
-          this.fixedBodies[j],
-          timestep
+          timestep,
+          this.restitution
         )
         if (newCollision !== null) {
           collisions.push(newCollision)

@@ -1,4 +1,4 @@
-import { State, Body, FixedBody, Vector } from './js/physicsplain.js'
+import { State, Body, FixedArc, FixedBody, Vector } from './js/physicsplain.js'
 
 /**
  * Main entry point.
@@ -138,43 +138,22 @@ function createExample3 () {
 
   // bodies
   const state = new State()
-  state.movableBodies = [
-    new Body(0).setOrigin(-0.6, 0).finalize(),
-    new Body(1)
-      .setOrigin(-0.2, 0)
-      .setDimension(0.15, 0.15)
-      .finalize(),
-    new Body(2)
-      .setOrigin(0.1, 0)
-      .setDimension(0.2, 0.2)
-      .finalize(),
-    new Body(3)
-      .setOrigin(0.5, 0)
-      .setDimension(0.3, 0.3)
-      .finalize()
-  ]
+  state.movableBodies = [new Body(0).setOrigin(-0.7, 0.4).finalize()]
   state.fixedBodies = [
-    new FixedBody(4)
-      .setOrigin(0, 0.55)
-      .setAngle(0.04)
+    new FixedBody(1)
+      .setOrigin(0, 0.6)
       .setDimension(2, 0.2)
       .finalize(),
-    new FixedBody(5)
-      .setOrigin(0, -0.55)
-      .setAngle(0.04)
+    new FixedBody(2)
+      .setOrigin(0, -0.6)
       .setDimension(2, 0.2)
       .finalize(),
-    new FixedBody(6)
-      .setOrigin(-1.05, 0)
-      .setAngle(0.04)
-      .setDimension(0.2, 2)
-      .finalize(),
-    new FixedBody(7)
-      .setOrigin(1.05, 0)
-      .setAngle(0.04)
-      .setDimension(0.2, 2)
-      .finalize()
+    new FixedArc(33, new Vector(0.5, 0), 0.5, 0.2, 0, Math.PI * 0.5),
+    new FixedArc(34, new Vector(0.5, 0), 0.5, 0.2, Math.PI * 1.5, Math.PI * 2)
   ]
+
+  // initial velocity of impacting body
+  state.movableBodies[0].velocity.x = 4
 
   // colors
   const colors = []
@@ -202,26 +181,25 @@ window.onload = function () {
   // initialize examples
   const examples = [createExample1(), createExample2(), createExample3()]
 
-  // bind key down and key up events to first body of example 3
-  window.onkeydown = onKeyDown(examples[2].state.movableBodies[0])
-  window.onkeyup = onKeyUp(examples[2].state.movableBodies[0])
-
   // initially resize canvas, and also listen for resize events
   resizeCanvas(examples)
   window.addEventListener('resize', function (e) {
     resizeCanvas(examples)
   })
 
+  // repeating examples every 4s, 7s, 3s respectively
+  const lastRepeat = [0, 0, 0]
+  const repeat = [4000, 7000, 3000]
+  const initFuncs = [createExample1, createExample2, createExample3]
+
   // step function is called every time the browser refreshes the UI
-  let lastRepeat1 = 0
-  let lastRepeat2 = 0
   function step (now) {
     // advance state of all examples
     for (const example of examples) {
       example.state.advance(now)
     }
 
-    // draw all examples
+    // clear all examples
     for (const example of examples) {
       // clear canvas
       example.context.fillStyle = example.backgroundColor
@@ -231,7 +209,18 @@ window.onload = function () {
         example.canvas.width,
         example.canvas.height
       )
+    }
 
+    // draw circle for example 3
+    drawCircle(
+      examples[2].canvas,
+      examples[2].context,
+      examples[2].colors[examples[2].state.fixedBodies[0].id],
+      examples[2].backgroundColor
+    )
+
+    // draw bodies for all examples
+    for (const example of examples) {
       // draw bodies
       for (const body of example.state.movableBodies) {
         drawBody(body, example.canvas, example.context, example.colors)
@@ -241,15 +230,12 @@ window.onload = function () {
       }
     }
 
-    // repeat example 1 after 4 seconds
-    if (now - lastRepeat1 > 4000) {
-      examples[0] = createExample1()
-      lastRepeat1 = now
-    }
-    // repeat example 2 after 7 seconds
-    if (now - lastRepeat2 > 7000) {
-      examples[1] = createExample2()
-      lastRepeat2 = now
+    // repeat examples
+    for (let i = 0; i < examples.length; i++) {
+      if (now - lastRepeat[i] > repeat[i]) {
+        examples[i] = initFuncs[i]()
+        lastRepeat[i] = now
+      }
     }
 
     // request next animation frame from browser
@@ -263,6 +249,10 @@ window.onload = function () {
  * Draws body on canvas.
  */
 function drawBody (body, canvas, context, colors) {
+  if (body.id > 30) {
+    // hack to ignore arcs
+    return
+  }
   context.fillStyle = colors[body.id]
   context.beginPath()
   context.moveTo(tx(canvas, body.cornerX[0]), ty(canvas, body.cornerY[0]))
@@ -270,6 +260,34 @@ function drawBody (body, canvas, context, colors) {
     context.lineTo(tx(canvas, body.cornerX[i]), ty(canvas, body.cornerY[i]))
   }
   context.closePath()
+  context.fill()
+}
+
+/*
+ * Draws circle for example 3
+ */
+function drawCircle (canvas, context, wallColor, backgroundColor) {
+  // draw big wall
+  context.fillStyle = wallColor
+  context.beginPath()
+  context.moveTo(tx(canvas, 0.5), ty(canvas, 0.5))
+  context.lineTo(tx(canvas, 1), ty(canvas, 0.5))
+  context.lineTo(tx(canvas, 1), ty(canvas, -0.5))
+  context.lineTo(tx(canvas, 0.5), ty(canvas, -0.5))
+  context.closePath()
+  context.fill()
+
+  // draw circle on top of wall
+  context.fillStyle = backgroundColor
+  context.beginPath()
+  context.arc(
+    tx(canvas, 0.5),
+    ty(canvas, 0),
+    tx(canvas, 0.5) - tx(canvas, 0),
+    0,
+    2 * Math.PI,
+    false
+  )
   context.fill()
 }
 
@@ -292,78 +310,6 @@ function tx (canvas, x) {
  */
 function ty (canvas, y) {
   return (-canvas.width / 2) * y + canvas.height / 2
-}
-
-/*
- * Processes key down events for Example 3.
- */
-const direction = new Vector(0, 0)
-const thrust = 3
-function onKeyDown (body) {
-  return function (e) {
-    switch (e.keyCode) {
-      case 39:
-      case 68:
-        // right or "D"
-        direction.x = 1
-        break
-      case 37:
-      case 65:
-        // left or "A"
-        direction.x = -1
-        break
-      case 38:
-      case 87:
-        // up or "W"
-        direction.y = 1
-        break
-      case 40:
-      case 83:
-        // down or "S"
-        direction.y = -1
-        break
-    }
-    // set force to body, length of force vector equals thrust
-    body.force
-      .set(direction)
-      .normalize()
-      .scale(thrust)
-  }
-}
-
-/*
- * Processes key up events for Example 3.
- */
-function onKeyUp (body) {
-  return function (e) {
-    switch (e.keyCode) {
-      case 39:
-      case 68:
-        // right or "D"
-        direction.x = 0
-        break
-      case 37:
-      case 65:
-        // left or "A"
-        direction.x = 0
-        break
-      case 38:
-      case 87:
-        // up or "W"
-        direction.y = 0
-        break
-      case 40:
-      case 83:
-        // down or "S"
-        direction.y = 0
-        break
-    }
-    // set force to body, length of force vector equals thrust
-    body.force
-      .set(direction)
-      .normalize()
-      .scale(thrust)
-  }
 }
 
 /*

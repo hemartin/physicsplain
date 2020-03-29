@@ -59,6 +59,14 @@ class Vector {
   static length (x, y) {
     return Math.sqrt(x * x + y * y)
   }
+
+  static angle (x, y) {
+    let angle = Math.atan2(y, x)
+    if (angle < 0) {
+      angle += 2 * Math.PI
+    }
+    return angle
+  }
 }
 
 export { Vector }

@@ -172,6 +172,40 @@ class Body {
     this.angularVelocity += angularVelocity
   }
 
+  /**
+   * Collides other body with this body. This is the impacted body. The
+   * other body is the colliding body.
+   *
+   * @param {Body}   collidingBody other body
+   * @param {Number} timestep      timestep
+   * @param {Number} restitution   restitution
+   * @returns collision, or null if not colliding
+   */
+  collide (collidingBody, timestep, restitution) {
+    const collision = new Collision(restitution)
+    this.collideAllCorners(collision, collidingBody, timestep)
+
+    if (collision.collisionPoints.length < 2) {
+      collidingBody.collideAllCorners(collision, this, timestep)
+    }
+
+    if (collision.collisionPoints.length === 0) {
+      return null
+    }
+    return collision
+  }
+
+  collideAllCorners (collision, collidingBody, timestep) {
+    for (let corner = 0; corner < 4; corner++) {
+      this.collideSingleCorner(
+        collision,
+        collidingBody,
+        corner,
+        timestep
+      )
+    }
+  }
+
   collideSingleCorner (collision, collidingBody, corner, timestep) {
     // error margin
     const eps = 1e-5
@@ -353,32 +387,6 @@ class Body {
         minSeparation
       )
       collision.collisionPoints.push(collisionPoint)
-    }
-  }
-
-  // static methods
-  static collide (state, body1, body2, timestep) {
-    const collision = new Collision(state.restitution)
-    Body.collideAllCorners(collision, body1, body2, timestep)
-
-    if (collision.collisionPoints.length < 2) {
-      Body.collideAllCorners(collision, body2, body1, timestep)
-    }
-
-    if (collision.collisionPoints.length === 0) {
-      return null
-    }
-    return collision
-  }
-
-  static collideAllCorners (collision, collidingBody, impactedBody, timestep) {
-    for (let corner = 0; corner < 4; corner++) {
-      impactedBody.collideSingleCorner(
-        collision,
-        collidingBody,
-        corner,
-        timestep
-      )
     }
   }
 }
