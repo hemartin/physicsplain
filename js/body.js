@@ -2,339 +2,337 @@ import { Collision } from './collision.js'
 import { CollisionPoint } from './collisionpoint.js'
 import { Vector } from './vector.js'
 
-export const Body_INFINITE_MASS = -1
+export const bodyInfiniteMass = -1
 
 /**
  * Rigid body.
- * 
+ *
  * Heavily inspired by Erin Catto's GDC slides and his Box2D library. Also
  * inspired by the demos of myphysicslab.com.
 
  * Constructs a rigid body using default values. Call finalize after modifying
  * any values to compute the body's inertia and the position of corners.
- * 
+ *
  * @author Martin Hentschel
  */
 class Body {
+  constructor (id) {
+    this.id = id
+    this.origin = new Vector(0, 0)
+    this.angle = 0
+    this.dimension = new Vector(0.1, 0.1)
+    this.mass = 1
+    this.velocity = new Vector(0, 0)
+    this.angularVelocity = 0
 
-    constructor(id) {
-        this.id = id
-        this.origin = new Vector(0, 0)
-        this.angle = 0
-        this.dimension = new Vector(0.1, 0.1)
-        this.mass = 1
-        this.velocity = new Vector(0, 0)
-        this.angularVelocity = 0
+    this.lateralFriction = 1
+    this.rotationalFriction = 1
 
-        this.lateralFriction = 1;
-        this.rotationalFriction = 1;
+    // force that drives body forward
+    this.force = new Vector(0, 0)
 
-        // force that drives body forward
-        this.force = new Vector(0, 0)
+    // remember to call finalize()
+    this.cx = [0, 0, 0, 0]
+    this.cy = [0, 0, 0, 0]
+  }
 
-        // remember to call finalize()
-        this.cx = [0, 0, 0, 0]
-        this.cy = [0, 0, 0, 0]
+  /*
+   * Finalizes the construction of body by calculating its inertia, inverted mass,
+   * and the location of its corners.
+   */
+  finalize () {
+    this.inertia = (this.dimension.x * this.dimension.x + this.dimension.y * this.dimension.y) * this.mass / 12
+    this.calculateCorners()
+    return this
+  }
+
+  setOrigin (x, y) {
+    this.origin.x = x
+    this.origin.y = y
+    return this
+  }
+
+  setAngle (a) {
+    this.angle = a
+    return this
+  }
+
+  setDimension (x, y) {
+    this.dimension.x = x
+    this.dimension.y = y
+    return this
+  }
+
+  setMass (m) {
+    this.mass = m
+    return this
+  }
+
+  setForce (x, y) {
+    this.force.x = x
+    this.force.y = y
+    return this
+  }
+
+  advance (timestep) {
+    // origin.add(Vector.scale(velocity, timestep))
+    this.origin.x += this.velocity.x * timestep
+    this.origin.y += this.velocity.y * timestep
+
+    this.angle += this.angularVelocity * timestep
+    if (this.angle > Math.Pi) {
+      this.angle -= 2 * Math.Pi
+    } else if (this.angle < -Math.Pi) {
+      this.angle += 2 * Math.Pi
     }
 
-    /*
-     * Finalizes the construction of body by calculating its inertia, inverted mass,
-     * and the location of its corners.
-     */
-    finalize() {
-        this.inertia = (this.dimension.x * this.dimension.x + this.dimension.y * this.dimension.y) * this.mass / 12
-        this.calculateCorners()
-        return this
+    this.calculateCorners()
+  }
+
+  applyForces (timestep) {
+    // apply force
+    this.velocity.x += this.force.x * timestep * this.invertedMass()
+    this.velocity.y += this.force.y * timestep * this.invertedMass()
+
+    // apply friction
+    this.velocity.scale(Math.max(0, 1 - timestep * this.lateralFriction))
+    this.angularVelocity *= Math.max(0, 1 - timestep * this.rotationalFriction)
+  }
+
+  calculateCorners () {
+    const directionY = Math.sin(this.angle)
+    const directionX = Math.cos(this.angle)
+
+    // Vector tangent = Vector.tangent(direction)
+    const tangentX = -directionY
+    const tangentY = directionX
+
+    this.cx[0] = this.origin.x + directionX * this.dimension.x * 0.5 + tangentX * this.dimension.y * 0.5
+    this.cy[0] = this.origin.y + directionY * this.dimension.x * 0.5 + tangentY * this.dimension.y * 0.5
+    this.cx[1] = this.origin.x - directionX * this.dimension.x * 0.5 + tangentX * this.dimension.y * 0.5
+    this.cy[1] = this.origin.y - directionY * this.dimension.x * 0.5 + tangentY * this.dimension.y * 0.5
+    this.cx[2] = this.origin.x - directionX * this.dimension.x * 0.5 - tangentX * this.dimension.y * 0.5
+    this.cy[2] = this.origin.y - directionY * this.dimension.x * 0.5 - tangentY * this.dimension.y * 0.5
+    this.cx[3] = this.origin.x + directionX * this.dimension.x * 0.5 - tangentX * this.dimension.y * 0.5
+    this.cy[3] = this.origin.y + directionY * this.dimension.x * 0.5 - tangentY * this.dimension.y * 0.5
+  }
+
+  invertedMass () {
+    if (this.isFixedBody()) {
+      return 0
     }
+    return 1 / this.mass
+  }
 
-    setOrigin(x, y) {
-        this.origin.x = x
-        this.origin.y = y
-        return this
+  invertedInertia () {
+    if (this.isFixedBody() || this.inertia === 0) {
+      return 0
     }
+    return 1 / this.inertia
+  }
 
-    setAngle(a) {
-        this.angle = a
-        return this
-    }
+  isFixedBody () {
+    return this.mass === bodyInfiniteMass
+  }
 
-    setDimension(x, y) {
-        this.dimension.x = x
-        this.dimension.y = y
-        return this
-    }
+  addVelocity (velocity) {
+    this.velocity.add(velocity)
+  }
 
-    setMass(m) {
-        this.mass = m
-        return this
-    }
+  addAngularVelocity (angularVelocity) {
+    this.angularVelocity += angularVelocity
+  }
 
-    setForce(x, y) {
-        this.force.x = x
-        this.force.y = y
-        return this
-    }
+  collideSingleCorner (collision, collidingBody, corner, timestep) {
+    // error margin
+    const eps = 1e-5
 
-    advance(timestep) {
-        // origin.add(Vector.scale(velocity, timestep))
-        this.origin.x += this.velocity.x * timestep
-        this.origin.y += this.velocity.y * timestep
+    // Vector vertex = collidingBody.vertex(corner)
+    const vertexX = collidingBody.cx[corner]
+    const vertexY = collidingBody.cy[corner]
 
-        this.angle += this.angularVelocity * timestep
-        if (this.angle > Math.Pi) {
-            this.angle -= 2 * Math.Pi
-        }
-        else if (this.angle < -Math.Pi) {
-            this.angle += 2 * Math.Pi
-        }
+    // this center as origin
+    // Vector q = Vector.substract(vertex, origin)
+    let x = vertexX - this.origin.x
+    let y = vertexY - this.origin.y
 
-        this.calculateCorners()
-    }
+    // q.rotate(-angle)
+    const cos = Math.cos(-this.angle)
+    const sin = Math.sin(-this.angle)
+    const tx = x * cos - y * sin
+    const ty = x * sin + y * cos
+    x = tx
+    y = ty
 
-    applyForces(timestep) {
-        // apply force
-        this.velocity.x += this.force.x * timestep * this.invertedMass()
-        this.velocity.y += this.force.y * timestep * this.invertedMass()
+    // check if within bounds
+    const halflength = this.dimension.x * 0.5
+    const halfwidth = this.dimension.y * 0.5
+    if (x >= -halflength - eps && x <= halflength + eps &&
+      y >= -halfwidth - eps && y <= halfwidth + eps) {
+      // relative velocity
+      const v1 = collidingBody.velocity
+      const w1 = collidingBody.angularVelocity
+      const v2 = this.velocity
+      const w2 = this.angularVelocity
 
-        // apply friction
-        this.velocity.scale(Math.max(0, 1 - timestep * this.lateralFriction))
-        this.angularVelocity *= Math.max(0, 1 - timestep * this.rotationalFriction)
-    }
+      // Vector r1 = Vector.substract(vertex, collidingBody.getOrigin())
+      const r1X = vertexX - collidingBody.origin.x
+      const r1Y = vertexY - collidingBody.origin.y
 
-    calculateCorners() {
-        const direction_y = Math.sin(this.angle)
-        const direction_x = Math.cos(this.angle)
+      // Vector r2 = Vector.substract(vertex, getOrigin())
+      const r2X = vertexX - this.origin.x
+      const r2Y = vertexY - this.origin.y
 
-        // Vector tangent = Vector.tangent(direction)
-        const tangent_x = -direction_y
-        const tangent_y = direction_x
+      // Vector relativeVelocity = Vector.cross(r1, w1)
+      let relativeVelocityX = -w1 * r1Y
+      let relativeVelocityY = w1 * r1X
 
-        this.cx[0] = this.origin.x + direction_x * this.dimension.x * 0.5 + tangent_x * this.dimension.y * 0.5
-        this.cy[0] = this.origin.y + direction_y * this.dimension.x * 0.5 + tangent_y * this.dimension.y * 0.5
-        this.cx[1] = this.origin.x - direction_x * this.dimension.x * 0.5 + tangent_x * this.dimension.y * 0.5
-        this.cy[1] = this.origin.y - direction_y * this.dimension.x * 0.5 + tangent_y * this.dimension.y * 0.5
-        this.cx[2] = this.origin.x - direction_x * this.dimension.x * 0.5 - tangent_x * this.dimension.y * 0.5
-        this.cy[2] = this.origin.y - direction_y * this.dimension.x * 0.5 - tangent_y * this.dimension.y * 0.5
-        this.cx[3] = this.origin.x + direction_x * this.dimension.x * 0.5 - tangent_x * this.dimension.y * 0.5
-        this.cy[3] = this.origin.y + direction_y * this.dimension.x * 0.5 - tangent_y * this.dimension.y * 0.5
-    }
+      // Vector t1 = Vector.cross(r2, w2)
+      const t1X = -w2 * r2Y
+      const t1Y = w2 * r2X
 
-    invertedMass() {
-        if (this.isFixedBody()) {
-            return 0
-        }
-        return 1 / this.mass
-    }
+      // relativeVelocity.substract(t1)
+      relativeVelocityX -= t1X
+      relativeVelocityY -= t1Y
 
-    invertedInertia() {
-        if (this.isFixedBody() || this.inertia === 0) {
-            return 0
-        }
-        return 1 / this.inertia
-    }
+      // relativeVelocity.substract(v2)
+      relativeVelocityX -= v2.x
+      relativeVelocityY -= v2.y
 
-    isFixedBody() {
-        return this.mass === Body_INFINITE_MASS
-    }
+      // relativeVelocity.add(v1)
+      relativeVelocityX += v1.x
+      relativeVelocityY += v1.y
 
-    addVelocity(velocity) {
-        this.velocity.add(velocity)
-    }
+      // Vector relativeMove = Vector.scale(relativeVelocity, timestep)
+      let relativeMoveX = relativeVelocityX * timestep
+      let relativeMoveY = relativeVelocityY * timestep
 
-    addAngularVelocity(angularVelocity) {
-        this.angularVelocity += angularVelocity
-    }
+      // relativeMove.rotate(-getAngle())
+      const cos1 = Math.cos(-this.angle)
+      const sin1 = Math.sin(-this.angle)
+      const tx1 = relativeMoveX * cos1 - relativeMoveY * sin1
+      const ty1 = relativeMoveX * sin1 + relativeMoveY * cos1
+      relativeMoveX = tx1
+      relativeMoveY = ty1
 
-    collideSingleCorner(collision, collidingBody, corner, timestep) {
-        // error margin
-        const eps = 1e-5
+      // get edge closest to point
+      // top edge
+      let separation = halfwidth - y
+      let minSeparation = separation
+      let maxEdge = 0
+      let minEdge = 0
+      if (separation < -relativeMoveY) {
+        maxEdge = 1
+      }
 
-        // Vector vertex = collidingBody.vertex(corner)
-        const vertex_x = collidingBody.cx[corner]
-        const vertex_y = collidingBody.cy[corner]
+      // left edge
+      separation = halflength + x
+      if (separation < relativeMoveX) {
+        maxEdge |= 2
+      }
 
-        // this center as origin
-        // Vector q = Vector.substract(vertex, origin)
-        let x = vertex_x - this.origin.x
-        let y = vertex_y - this.origin.y
+      if (separation < minSeparation) {
+        minSeparation = separation
+        minEdge = 1
+      }
 
-        // q.rotate(-angle)
-        const cos = Math.cos(-this.angle)
-        const sin = Math.sin(-this.angle)
-        const tx = x * cos - y * sin
-        const ty = x * sin + y * cos
-        x = tx
-        y = ty
+      // bottom edge
+      separation = halfwidth + y
+      if (separation < relativeMoveY) {
+        maxEdge |= 4
+      }
 
-        // check if within bounds
-        const halflength = this.dimension.x * 0.5
-        const halfwidth = this.dimension.y * 0.5
-        if (x >= -halflength - eps && x <= halflength + eps
-            && y >= -halfwidth - eps && y <= halfwidth + eps) {
-            // relative velocity
-            const v1 = collidingBody.velocity
-            const w1 = collidingBody.angularVelocity
-            const v2 = this.velocity
-            const w2 = this.angularVelocity
+      if (separation < minSeparation) {
+        minSeparation = separation
+        minEdge = 2
+      }
 
-            // Vector r1 = Vector.substract(vertex, collidingBody.getOrigin())
-            const r1_x = vertex_x - collidingBody.origin.x
-            const r1_y = vertex_y - collidingBody.origin.y
+      // right edge
+      separation = halflength - x
+      if (separation < -relativeMoveX) {
+        maxEdge |= 8
+      }
 
-            // Vector r2 = Vector.substract(vertex, getOrigin())
-            const r2_x = vertex_x - this.origin.x
-            const r2_y = vertex_y - this.origin.y
+      if (separation < minSeparation) {
+        minSeparation = separation
+        minEdge = 3
+      }
 
-            // Vector relativeVelocity = Vector.cross(r1, w1)
-            let relativeVelocity_x = -w1 * r1_y
-            let relativeVelocity_y = w1 * r1_x
-
-            // Vector t1 = Vector.cross(r2, w2)
-            const t1_x = -w2 * r2_y
-            const t1_y = w2 * r2_x
-
-            // relativeVelocity.substract(t1)
-            relativeVelocity_x -= t1_x
-            relativeVelocity_y -= t1_y
-
-            // relativeVelocity.substract(v2)
-            relativeVelocity_x -= v2.x
-            relativeVelocity_y -= v2.y
-
-            // relativeVelocity.add(v1)
-            relativeVelocity_x += v1.x
-            relativeVelocity_y += v1.y
-
-            // Vector relativeMove = Vector.scale(relativeVelocity, timestep)
-            let relativeMove_x = relativeVelocity_x * timestep
-            let relativeMove_y = relativeVelocity_y * timestep
-
-            // relativeMove.rotate(-getAngle())
-            const cos1 = Math.cos(-this.angle)
-            const sin1 = Math.sin(-this.angle)
-            const tx1 = relativeMove_x * cos1 - relativeMove_y * sin1
-            const ty1 = relativeMove_x * sin1 + relativeMove_y * cos1
-            relativeMove_x = tx1
-            relativeMove_y = ty1
-
-            // get edge closest to point
-            // top edge
-            let separation = halfwidth - y
-            let minSeparation = separation
-            let maxEdge = 0
-            let minEdge = 0
-            if (separation < -relativeMove_y) {
-                maxEdge = 1
-            }
-
-            // left edge
-            separation = halflength + x
-            if (separation < relativeMove_x) {
-                maxEdge |= 2
-            }
-
-            if (separation < minSeparation) {
-                minSeparation = separation
-                minEdge = 1
-            }
-
-            // bottom edge
-            separation = halfwidth + y
-            if (separation < relativeMove_y) {
-                maxEdge |= 4
-            }
-
-            if (separation < minSeparation) {
-                minSeparation = separation
-                minEdge = 2
-            }
-
-            // right edge
-            separation = halflength - x
-            if (separation < -relativeMove_x) {
-                maxEdge |= 8
-            }
-
-            if (separation < minSeparation) {
-                minSeparation = separation
-                minEdge = 3
-            }
-
-            // create collision point
-            let normal_x
-            let normal_y
-            if (maxEdge > 0) {
-                let count = 0
-                // normal = new Vector(0, 0)
-                normal_x = 0
-                normal_y = 0
-                for (let i = 0; i < 4; i++) {
-                    if ((maxEdge & (1 << i)) > 0) {
-                        // normal.add(edgeNormal(i))
-                        const impactedCorner1 = i
-                        const impactedCorner2 = (impactedCorner1 === 3) ? 0 : impactedCorner1 + 1
-                        let en_x = this.cx[impactedCorner1] - this.cx[impactedCorner2]
-                        let en_y = this.cy[impactedCorner1] - this.cy[impactedCorner2]
-                        const div = 1 / Vector.length(en_x, en_y)
-                        en_x *= div
-                        en_y *= div
-                        const tmp = en_x
-                        en_x = -en_y
-                        en_y = tmp
-                        normal_x += en_x
-                        normal_y += en_y
-                        count++
-                    }
-                }
-
-                if (count > 1) {
-                    // normal.scale(1f / normal.dimension.x())
-                    const normal_len = Vector.length(normal_x, normal_y)
-                    normal_x /= normal_len
-                    normal_y /= normal_len
-                }
-            } else {
-                // normal = edgeNormal(minEdge)
-                const impactedCorner1 = minEdge
-                const impactedCorner2 = (impactedCorner1 === 3) ? 0 : impactedCorner1 + 1
-                let en_x = this.cx[impactedCorner1] - this.cx[impactedCorner2]
-                let en_y = this.cy[impactedCorner1] - this.cy[impactedCorner2]
-                const div = 1 / Vector.length(en_x, en_y)
-                en_x *= div
-                en_y *= div
-                const tmp = en_x
-                en_x = -en_y
-                en_y = tmp
-                normal_x = en_x
-                normal_y = en_y
-            }
-
-            const collisionPoint = new CollisionPoint(collidingBody, this, normal_x,
-                normal_y, vertex_x, vertex_y, minSeparation)
-            collision.collisionPoints.push(collisionPoint)
-        }
-    }
-
-    // static methods
-    static collide(state, body1, body2, timestep) {
-        const collision = new Collision(state.restitution)
-        Body.collideAllCorners(collision, body1, body2, timestep)
-
-        if (collision.collisionPoints.length < 2) {
-            Body.collideAllCorners(collision, body2, body1, timestep)
+      // create collision point
+      let normalX
+      let normalY
+      if (maxEdge > 0) {
+        let count = 0
+        // normal = new Vector(0, 0)
+        normalX = 0
+        normalY = 0
+        for (let i = 0; i < 4; i++) {
+          if ((maxEdge & (1 << i)) > 0) {
+            // normal.add(edgeNormal(i))
+            const impactedCorner1 = i
+            const impactedCorner2 = (impactedCorner1 === 3) ? 0 : impactedCorner1 + 1
+            let enX = this.cx[impactedCorner1] - this.cx[impactedCorner2]
+            let enY = this.cy[impactedCorner1] - this.cy[impactedCorner2]
+            const div = 1 / Vector.length(enX, enY)
+            enX *= div
+            enY *= div
+            const tmp = enX
+            enX = -enY
+            enY = tmp
+            normalX += enX
+            normalY += enY
+            count++
+          }
         }
 
-        if (collision.collisionPoints.length === 0) {
-            return null
+        if (count > 1) {
+          // normal.scale(1f / normal.dimension.x())
+          const normalLen = Vector.length(normalX, normalY)
+          normalX /= normalLen
+          normalY /= normalLen
         }
-        return collision
+      } else {
+        // normal = edgeNormal(minEdge)
+        const impactedCorner1 = minEdge
+        const impactedCorner2 = (impactedCorner1 === 3) ? 0 : impactedCorner1 + 1
+        let enX = this.cx[impactedCorner1] - this.cx[impactedCorner2]
+        let enY = this.cy[impactedCorner1] - this.cy[impactedCorner2]
+        const div = 1 / Vector.length(enX, enY)
+        enX *= div
+        enY *= div
+        const tmp = enX
+        enX = -enY
+        enY = tmp
+        normalX = enX
+        normalY = enY
+      }
+
+      const collisionPoint = new CollisionPoint(collidingBody, this, normalX,
+        normalY, vertexX, vertexY, minSeparation)
+      collision.collisionPoints.push(collisionPoint)
+    }
+  }
+
+  // static methods
+  static collide (state, body1, body2, timestep) {
+    const collision = new Collision(state.restitution)
+    Body.collideAllCorners(collision, body1, body2, timestep)
+
+    if (collision.collisionPoints.length < 2) {
+      Body.collideAllCorners(collision, body2, body1, timestep)
     }
 
-    static collideAllCorners(collision, collidingBody, impactedBody, timestep) {
-        for (let corner = 0; corner < 4; corner++) {
-            impactedBody.collideSingleCorner(collision, collidingBody, corner, timestep)
-        }
+    if (collision.collisionPoints.length === 0) {
+      return null
     }
+    return collision
+  }
+
+  static collideAllCorners (collision, collidingBody, impactedBody, timestep) {
+    for (let corner = 0; corner < 4; corner++) {
+      impactedBody.collideSingleCorner(collision, collidingBody, corner, timestep)
+    }
+  }
 }
 
 export { Body }
