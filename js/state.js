@@ -12,13 +12,36 @@ class State {
     constructor() {
         this.movableBodies = []
         this.fixedBodies = []
-        this.nextBodyId = 0
+
+        this.start = 0
+        this.previous = 0
+        this.remainder = 0
 
         // constants
         this.restitution = 1; // 1 = elastic collision, <1 inelastic collision
     }
 
-    advance(timestep) {
+    advance(now) {
+        const fixedTimestep = 10; // in ms
+
+        if (this.start === 0) {
+            this.start = now
+        }
+        if (this.previous === 0) {
+            this.previous = now
+        }
+        let timestep = now - this.previous + this.remainder
+
+        // move physics forward in fixed intervals
+        while (timestep > fixedTimestep) {
+            this.advanceByTimestep(fixedTimestep / 1000)
+            timestep -= fixedTimestep
+        }
+        this.previous = now
+        this.remainder = timestep
+    }
+
+    advanceByTimestep(timestep) {
         // check for collisions
         const collisions = this.collide(timestep)
 

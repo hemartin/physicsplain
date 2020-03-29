@@ -181,30 +181,14 @@ window.onload = function () {
         resizeCanvas(examples)
     })
 
-    // fixed timestep to advance physics
-    const fixedTimestep = 10; // in ms
-
     // step function is called every time the browser refreshes the UI
-    let start = 0
-    let previous = 0
-    let remainder = 0
     let lastRepeat1 = 0
     let lastRepeat2 = 0
     function step(now) {
-        if (start === 0) start = now
-        if (previous === 0) previous = now
-        let timestep = now - previous + remainder
-
-        // move physics forward in fixed intervals
-        while (timestep > fixedTimestep) {
-            // advance state of all examples
-            for (const example of examples) {
-                example.state.advance(fixedTimestep / 1000)
-            }
-            timestep -= fixedTimestep
+        // advance state of all examples
+        for (const example of examples) {
+            example.state.advance(now)
         }
-        previous = now
-        remainder = timestep
 
         // draw all examples
         for (const example of examples) {
