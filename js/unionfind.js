@@ -53,3 +53,5 @@ class UnionFind {
         }
     }
 }
+
+export { UnionFind }

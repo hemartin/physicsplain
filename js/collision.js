@@ -1,3 +1,6 @@
+import { UnionFind } from './unionfind.js'
+import { Vector } from './vector.js'
+
 /**
  * A collision contains one or more collision points.
  * 
@@ -186,3 +189,5 @@ class Collision {
         return mergedCollisions
     }
 }
+
+export { Collision }

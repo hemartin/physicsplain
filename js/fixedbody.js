@@ -1,3 +1,4 @@
+import { Body, Body_INFINITE_MASS } from './body.js'
 
 /**
  * FixedBody inherits from Body. The only difference being that its mass is
@@ -11,3 +12,5 @@ class FixedBody extends Body {
         this.setMass(Body_INFINITE_MASS)
     }
 }
+
+export { FixedBody }

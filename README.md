@@ -33,4 +33,3 @@ This project was inspired by the following projects and websites:
 - Physics simulations at [myPhysicsLab](http://www.myphysicslab.com/)
 - Separating physics and graphics from [Fix Your Timestep!](http://gafferongames.com/game-physics/fix-your-timestep/)
 - Union-Find algorithm from [Algorithms, 4th Edition](http://algs4.cs.princeton.edu/home/) and [Wikipedia](https://en.wikipedia.org/wiki/Disjoint-set_data_structure)
-- Colors from [swiss style color picker](http://swisscolors.net/)

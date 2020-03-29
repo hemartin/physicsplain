@@ -1,3 +1,6 @@
+import { Body } from './body.js'
+import { Collision } from './collision.js'
+
 /**
  * The state contains all entities and advances them, including resolving
  * collisions.
@@ -91,3 +94,5 @@ class State {
         return Collision.mergeCollisions(collisions)
     }
 }
+
+export { State }

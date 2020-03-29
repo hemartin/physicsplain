@@ -1,18 +1,19 @@
+import { Collision } from './collision.js'
+import { CollisionPoint } from './collisionpoint.js'
+import { Vector } from './vector.js'
+
+export const Body_INFINITE_MASS = -1
+
 /**
  * Rigid body.
  * 
  * Heavily inspired by Erin Catto's GDC slides and his Box2D library. Also
  * inspired by the demos of myphysicslab.com.
- * 
- * @author Martin Hentschel
- */
 
-const Body_INFINITE_MASS = -1
-const Body_EPS = 1e-5
-
-/*
  * Constructs a rigid body using default values. Call finalize after modifying
  * any values to compute the body's inertia and the position of corners.
+ * 
+ * @author Martin Hentschel
  */
 class Body {
 
@@ -145,6 +146,9 @@ class Body {
     }
 
     collideSingleCorner(collision, collidingBody, corner, timestep) {
+        // error margin
+        const eps = 1e-5
+
         // Vector vertex = collidingBody.vertex(corner)
         const vertex_x = collidingBody.cx[corner]
         const vertex_y = collidingBody.cy[corner]
@@ -165,8 +169,8 @@ class Body {
         // check if within bounds
         const halflength = this.dimension.x * 0.5
         const halfwidth = this.dimension.y * 0.5
-        if (x >= -halflength - Body_EPS && x <= halflength + Body_EPS
-            && y >= -halfwidth - Body_EPS && y <= halfwidth + Body_EPS) {
+        if (x >= -halflength - eps && x <= halflength + eps
+            && y >= -halfwidth - eps && y <= halfwidth + eps) {
             // relative velocity
             const v1 = collidingBody.velocity
             const w1 = collidingBody.angularVelocity
@@ -332,3 +336,5 @@ class Body {
         }
     }
 }
+
+export { Body }

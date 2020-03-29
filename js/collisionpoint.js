@@ -1,3 +1,5 @@
+import { Vector } from './vector.js'
+
 /**
  * A collision point models exactly one point of collision between two entities.
  * 
@@ -63,3 +65,5 @@ class CollisionPoint {
         this.nw2 = 0
     }
 }
+
+export { CollisionPoint }

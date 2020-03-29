@@ -60,3 +60,5 @@ class Vector {
         return Math.sqrt(x * x + y * y)
     }
 }
+
+export { Vector }

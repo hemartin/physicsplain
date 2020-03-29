@@ -1,3 +1,5 @@
+import { State, Body, FixedBody, Vector } from './js/physicsplain.js'
+
 /**
  * Main entry point.
  * 
