@@ -31,9 +31,10 @@ class Body {
     // force that drives body forward
     this.force = new Vector(0, 0)
 
-    // remember to call finalize()
-    this.cx = [0, 0, 0, 0]
-    this.cy = [0, 0, 0, 0]
+    // corners, computed when calling finalize() after construction and
+    // after every
+    this.cornerX = [0, 0, 0, 0]
+    this.cornerY = [0, 0, 0, 0]
   }
 
   /*
@@ -41,7 +42,11 @@ class Body {
    * and the location of its corners.
    */
   finalize () {
-    this.inertia = (this.dimension.x * this.dimension.x + this.dimension.y * this.dimension.y) * this.mass / 12
+    this.inertia =
+      ((this.dimension.x * this.dimension.x +
+        this.dimension.y * this.dimension.y) *
+        this.mass) /
+      12
     this.calculateCorners()
     return this
   }
@@ -107,14 +112,38 @@ class Body {
     const tangentX = -directionY
     const tangentY = directionX
 
-    this.cx[0] = this.origin.x + directionX * this.dimension.x * 0.5 + tangentX * this.dimension.y * 0.5
-    this.cy[0] = this.origin.y + directionY * this.dimension.x * 0.5 + tangentY * this.dimension.y * 0.5
-    this.cx[1] = this.origin.x - directionX * this.dimension.x * 0.5 + tangentX * this.dimension.y * 0.5
-    this.cy[1] = this.origin.y - directionY * this.dimension.x * 0.5 + tangentY * this.dimension.y * 0.5
-    this.cx[2] = this.origin.x - directionX * this.dimension.x * 0.5 - tangentX * this.dimension.y * 0.5
-    this.cy[2] = this.origin.y - directionY * this.dimension.x * 0.5 - tangentY * this.dimension.y * 0.5
-    this.cx[3] = this.origin.x + directionX * this.dimension.x * 0.5 - tangentX * this.dimension.y * 0.5
-    this.cy[3] = this.origin.y + directionY * this.dimension.x * 0.5 - tangentY * this.dimension.y * 0.5
+    this.cornerX[0] =
+      this.origin.x +
+      directionX * this.dimension.x * 0.5 +
+      tangentX * this.dimension.y * 0.5
+    this.cornerY[0] =
+      this.origin.y +
+      directionY * this.dimension.x * 0.5 +
+      tangentY * this.dimension.y * 0.5
+    this.cornerX[1] =
+      this.origin.x -
+      directionX * this.dimension.x * 0.5 +
+      tangentX * this.dimension.y * 0.5
+    this.cornerY[1] =
+      this.origin.y -
+      directionY * this.dimension.x * 0.5 +
+      tangentY * this.dimension.y * 0.5
+    this.cornerX[2] =
+      this.origin.x -
+      directionX * this.dimension.x * 0.5 -
+      tangentX * this.dimension.y * 0.5
+    this.cornerY[2] =
+      this.origin.y -
+      directionY * this.dimension.x * 0.5 -
+      tangentY * this.dimension.y * 0.5
+    this.cornerX[3] =
+      this.origin.x +
+      directionX * this.dimension.x * 0.5 -
+      tangentX * this.dimension.y * 0.5
+    this.cornerY[3] =
+      this.origin.y +
+      directionY * this.dimension.x * 0.5 -
+      tangentY * this.dimension.y * 0.5
   }
 
   invertedMass () {
@@ -148,8 +177,8 @@ class Body {
     const eps = 1e-5
 
     // Vector vertex = collidingBody.vertex(corner)
-    const vertexX = collidingBody.cx[corner]
-    const vertexY = collidingBody.cy[corner]
+    const vertexX = collidingBody.cornerX[corner]
+    const vertexY = collidingBody.cornerY[corner]
 
     // this center as origin
     // Vector q = Vector.substract(vertex, origin)
@@ -167,8 +196,12 @@ class Body {
     // check if within bounds
     const halflength = this.dimension.x * 0.5
     const halfwidth = this.dimension.y * 0.5
-    if (x >= -halflength - eps && x <= halflength + eps &&
-      y >= -halfwidth - eps && y <= halfwidth + eps) {
+    if (
+      x >= -halflength - eps &&
+      x <= halflength + eps &&
+      y >= -halfwidth - eps &&
+      y <= halfwidth + eps
+    ) {
       // relative velocity
       const v1 = collidingBody.velocity
       const w1 = collidingBody.angularVelocity
@@ -270,9 +303,12 @@ class Body {
           if ((maxEdge & (1 << i)) > 0) {
             // normal.add(edgeNormal(i))
             const impactedCorner1 = i
-            const impactedCorner2 = (impactedCorner1 === 3) ? 0 : impactedCorner1 + 1
-            let enX = this.cx[impactedCorner1] - this.cx[impactedCorner2]
-            let enY = this.cy[impactedCorner1] - this.cy[impactedCorner2]
+            const impactedCorner2 =
+              impactedCorner1 === 3 ? 0 : impactedCorner1 + 1
+            let enX =
+              this.cornerX[impactedCorner1] - this.cornerX[impactedCorner2]
+            let enY =
+              this.cornerY[impactedCorner1] - this.cornerY[impactedCorner2]
             const div = 1 / Vector.length(enX, enY)
             enX *= div
             enY *= div
@@ -294,9 +330,9 @@ class Body {
       } else {
         // normal = edgeNormal(minEdge)
         const impactedCorner1 = minEdge
-        const impactedCorner2 = (impactedCorner1 === 3) ? 0 : impactedCorner1 + 1
-        let enX = this.cx[impactedCorner1] - this.cx[impactedCorner2]
-        let enY = this.cy[impactedCorner1] - this.cy[impactedCorner2]
+        const impactedCorner2 = impactedCorner1 === 3 ? 0 : impactedCorner1 + 1
+        let enX = this.cornerX[impactedCorner1] - this.cornerX[impactedCorner2]
+        let enY = this.cornerY[impactedCorner1] - this.cornerY[impactedCorner2]
         const div = 1 / Vector.length(enX, enY)
         enX *= div
         enY *= div
@@ -307,8 +343,15 @@ class Body {
         normalY = enY
       }
 
-      const collisionPoint = new CollisionPoint(collidingBody, this, normalX,
-        normalY, vertexX, vertexY, minSeparation)
+      const collisionPoint = new CollisionPoint(
+        collidingBody,
+        this,
+        normalX,
+        normalY,
+        vertexX,
+        vertexY,
+        minSeparation
+      )
       collision.collisionPoints.push(collisionPoint)
     }
   }
@@ -330,7 +373,12 @@ class Body {
 
   static collideAllCorners (collision, collidingBody, impactedBody, timestep) {
     for (let corner = 0; corner < 4; corner++) {
-      impactedBody.collideSingleCorner(collision, collidingBody, corner, timestep)
+      impactedBody.collideSingleCorner(
+        collision,
+        collidingBody,
+        corner,
+        timestep
+      )
     }
   }
 }

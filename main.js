@@ -35,8 +35,14 @@ function createExample1 () {
     new Body(8).setOrigin(0.4, -0.09).finalize()
   ]
   state.fixedBodies = [
-    new FixedBody(9).setOrigin(0, 0.38).setDimension(0.1, 0.5).finalize(),
-    new FixedBody(10).setOrigin(0, -0.38).setDimension(0.1, 0.5).finalize()
+    new FixedBody(9)
+      .setOrigin(0, 0.38)
+      .setDimension(0.1, 0.5)
+      .finalize(),
+    new FixedBody(10)
+      .setOrigin(0, -0.38)
+      .setDimension(0.1, 0.5)
+      .finalize()
   ]
 
   // set friction
@@ -51,7 +57,7 @@ function createExample1 () {
   // colors
   const colors = []
   for (const body of state.movableBodies) {
-    colors[body.id] = (body.id === 0) ? '#00b8b8' : '#e4bd0b'
+    colors[body.id] = body.id === 0 ? '#00b8b8' : '#e4bd0b'
   }
   for (const body of state.fixedBodies) {
     colors[body.id] = '#de3d83'
@@ -83,10 +89,16 @@ function createExample2 () {
     new Body(5).setOrigin(0.7, 0.5).finalize()
   ]
   state.fixedBodies = [
-    new FixedBody(6).setOrigin(-0.7, -0.5).setAngle(-0.1 * Math.PI)
-      .setDimension(1, 0.5).finalize(),
-    new FixedBody(7).setOrigin(0.7, -0.5).setAngle(0.1 * Math.PI)
-      .setDimension(1, 0.5).finalize()
+    new FixedBody(6)
+      .setOrigin(-0.7, -0.5)
+      .setAngle(-0.1 * Math.PI)
+      .setDimension(1, 0.5)
+      .finalize(),
+    new FixedBody(7)
+      .setOrigin(0.7, -0.5)
+      .setAngle(0.1 * Math.PI)
+      .setDimension(1, 0.5)
+      .finalize()
   ]
 
   // set friction
@@ -103,7 +115,7 @@ function createExample2 () {
   // colors
   const colors = []
   for (const body of state.movableBodies) {
-    colors[body.id] = (body.id < 3) ? '#e5e7de' : '#f54123'
+    colors[body.id] = body.id < 3 ? '#e5e7de' : '#f54123'
   }
   for (const body of state.fixedBodies) {
     colors[body.id] = '#0b3536'
@@ -128,25 +140,46 @@ function createExample3 () {
   const state = new State()
   state.movableBodies = [
     new Body(0).setOrigin(-0.6, 0).finalize(),
-    new Body(1).setOrigin(-0.2, 0).setDimension(0.15, 0.15).finalize(),
-    new Body(2).setOrigin(0.1, 0).setDimension(0.2, 0.2).finalize(),
-    new Body(3).setOrigin(0.5, 0).setDimension(0.3, 0.3).finalize()
+    new Body(1)
+      .setOrigin(-0.2, 0)
+      .setDimension(0.15, 0.15)
+      .finalize(),
+    new Body(2)
+      .setOrigin(0.1, 0)
+      .setDimension(0.2, 0.2)
+      .finalize(),
+    new Body(3)
+      .setOrigin(0.5, 0)
+      .setDimension(0.3, 0.3)
+      .finalize()
   ]
   state.fixedBodies = [
-    new FixedBody(4).setOrigin(0, 0.55).setAngle(0.04)
-      .setDimension(2, 0.2).finalize(),
-    new FixedBody(5).setOrigin(0, -0.55).setAngle(0.04)
-      .setDimension(2, 0.2).finalize(),
-    new FixedBody(6).setOrigin(-1.05, 0).setAngle(0.04)
-      .setDimension(0.2, 2).finalize(),
-    new FixedBody(7).setOrigin(1.05, 0).setAngle(0.04)
-      .setDimension(0.2, 2).finalize()
+    new FixedBody(4)
+      .setOrigin(0, 0.55)
+      .setAngle(0.04)
+      .setDimension(2, 0.2)
+      .finalize(),
+    new FixedBody(5)
+      .setOrigin(0, -0.55)
+      .setAngle(0.04)
+      .setDimension(2, 0.2)
+      .finalize(),
+    new FixedBody(6)
+      .setOrigin(-1.05, 0)
+      .setAngle(0.04)
+      .setDimension(0.2, 2)
+      .finalize(),
+    new FixedBody(7)
+      .setOrigin(1.05, 0)
+      .setAngle(0.04)
+      .setDimension(0.2, 2)
+      .finalize()
   ]
 
   // colors
   const colors = []
   for (const body of state.movableBodies) {
-    colors[body.id] = (body.id === 0) ? '#dfe0e2' : '#a5a6a9'
+    colors[body.id] = body.id === 0 ? '#dfe0e2' : '#a5a6a9'
   }
   for (const body of state.fixedBodies) {
     colors[body.id] = '#2f292b'
@@ -167,11 +200,7 @@ function createExample3 () {
  */
 window.onload = function () {
   // initialize examples
-  const examples = [
-    createExample1(),
-    createExample2(),
-    createExample3()
-  ]
+  const examples = [createExample1(), createExample2(), createExample3()]
 
   // bind key down and key up events to first body of example 3
   window.onkeydown = onKeyDown(examples[2].state.movableBodies[0])
@@ -196,7 +225,12 @@ window.onload = function () {
     for (const example of examples) {
       // clear canvas
       example.context.fillStyle = example.backgroundColor
-      example.context.fillRect(0, 0, example.canvas.width, example.canvas.height)
+      example.context.fillRect(
+        0,
+        0,
+        example.canvas.width,
+        example.canvas.height
+      )
 
       // draw bodies
       for (const body of example.state.movableBodies) {
@@ -231,9 +265,9 @@ window.onload = function () {
 function drawBody (body, canvas, context, colors) {
   context.fillStyle = colors[body.id]
   context.beginPath()
-  context.moveTo(tx(canvas, body.cx[0]), ty(canvas, body.cy[0]))
+  context.moveTo(tx(canvas, body.cornerX[0]), ty(canvas, body.cornerY[0]))
   for (let i = 1; i < 4; i++) {
-    context.lineTo(tx(canvas, body.cx[i]), ty(canvas, body.cy[i]))
+    context.lineTo(tx(canvas, body.cornerX[i]), ty(canvas, body.cornerY[i]))
   }
   context.closePath()
   context.fill()
@@ -245,7 +279,7 @@ function drawBody (body, canvas, context, colors) {
  * - if body is at x = 1, the body is at the canvas's right edge
  */
 function tx (canvas, x) {
-  return canvas.width / 2 * (x + 1)
+  return (canvas.width / 2) * (x + 1)
 }
 
 /*
@@ -257,7 +291,7 @@ function tx (canvas, x) {
  * - if body is at y = -0.5, the body is at the canvas's bottom edge
  */
 function ty (canvas, y) {
-  return -canvas.width / 2 * y + canvas.height / 2
+  return (-canvas.width / 2) * y + canvas.height / 2
 }
 
 /*
@@ -268,25 +302,32 @@ const thrust = 3
 function onKeyDown (body) {
   return function (e) {
     switch (e.keyCode) {
-      case 39: case 68:
+      case 39:
+      case 68:
         // right or "D"
         direction.x = 1
         break
-      case 37: case 65:
+      case 37:
+      case 65:
         // left or "A"
         direction.x = -1
         break
-      case 38: case 87:
+      case 38:
+      case 87:
         // up or "W"
         direction.y = 1
         break
-      case 40: case 83:
+      case 40:
+      case 83:
         // down or "S"
         direction.y = -1
         break
     }
     // set force to body, length of force vector equals thrust
-    body.force.set(direction).normalize().scale(thrust)
+    body.force
+      .set(direction)
+      .normalize()
+      .scale(thrust)
   }
 }
 
@@ -296,25 +337,32 @@ function onKeyDown (body) {
 function onKeyUp (body) {
   return function (e) {
     switch (e.keyCode) {
-      case 39: case 68:
+      case 39:
+      case 68:
         // right or "D"
         direction.x = 0
         break
-      case 37: case 65:
+      case 37:
+      case 65:
         // left or "A"
         direction.x = 0
         break
-      case 38: case 87:
+      case 38:
+      case 87:
         // up or "W"
         direction.y = 0
         break
-      case 40: case 83:
+      case 40:
+      case 83:
         // down or "S"
         direction.y = 0
         break
     }
     // set force to body, length of force vector equals thrust
-    body.force.set(direction).normalize().scale(thrust)
+    body.force
+      .set(direction)
+      .normalize()
+      .scale(thrust)
   }
 }
 
@@ -323,7 +371,7 @@ function onKeyUp (body) {
  */
 function resizeCanvas (examples) {
   const w = Math.min(window.innerWidth, canvasWidth)
-  const h = canvasHeight * w / canvasWidth
+  const h = (canvasHeight * w) / canvasWidth
   for (const example of examples) {
     if (example.canvas.width !== w) {
       example.canvas.width = w

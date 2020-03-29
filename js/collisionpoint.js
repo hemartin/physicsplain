@@ -6,8 +6,15 @@ import { Vector } from './vector.js'
  * @author Martin Hentschel
  */
 class CollisionPoint {
-  constructor (collidingEntity, impactedEntity,
-    normalX, normalY, contactPointX, contactPointY, separation) {
+  constructor (
+    collidingEntity,
+    impactedEntity,
+    normalX,
+    normalY,
+    contactPointX,
+    contactPointY,
+    separation
+  ) {
     this.collidingEntity = collidingEntity
     this.impactedEntity = impactedEntity
     this.normalX = normalX
@@ -38,10 +45,13 @@ class CollisionPoint {
     cp1 *= cp1
     let cp2 = Vector.cross(r2X, r2Y, this.normalX, this.normalY)
     cp2 *= cp2
-    return 1 / (this.collidingEntity.invertedMass() +
-      this.impactedEntity.invertedMass() +
-      cp1 * this.collidingEntity.invertedInertia() +
-      cp2 * this.impactedEntity.invertedInertia())
+    return (
+      1 /
+      (this.collidingEntity.invertedMass() +
+        this.impactedEntity.invertedMass() +
+        cp1 * this.collidingEntity.invertedInertia() +
+        cp2 * this.impactedEntity.invertedInertia())
+    )
   }
 
   addTempVelocities (v1X, v1Y, w1, v2X, v2Y, w2) {

@@ -20,8 +20,8 @@ class State {
     this.previous = 0
     this.remainder = 0
 
-    // constants
-    this.restitution = 1 // 1 = elastic collision, <1 inelastic collision
+    // restitution: 1 = elastic collision, <1 inelastic collision
+    this.restitution = 1
   }
 
   advance (now) {
@@ -71,8 +71,12 @@ class State {
     const movableBodiesCount = this.movableBodies.length
     for (let i = 0; i < movableBodiesCount - 1; i++) {
       for (let j = i + 1; j < movableBodiesCount; j++) {
-        const newCollision = Body.collide(this, this.movableBodies[i],
-          this.movableBodies[j], timestep)
+        const newCollision = Body.collide(
+          this,
+          this.movableBodies[i],
+          this.movableBodies[j],
+          timestep
+        )
         if (newCollision !== null) {
           collisions.push(newCollision)
         }
@@ -83,8 +87,12 @@ class State {
     const fixedBodiesCount = this.fixedBodies.length
     for (let i = 0; i < movableBodiesCount; i++) {
       for (let j = 0; j < fixedBodiesCount; j++) {
-        const newCollision = Body.collide(this, this.movableBodies[i],
-          this.fixedBodies[j], timestep)
+        const newCollision = Body.collide(
+          this,
+          this.movableBodies[i],
+          this.fixedBodies[j],
+          timestep
+        )
         if (newCollision !== null) {
           collisions.push(newCollision)
         }

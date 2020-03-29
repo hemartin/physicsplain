@@ -97,17 +97,28 @@ class Collision {
           originalDeltasY[j] = deltaY * this.restitution
         }
 
-        let normalImpulse = -(Vector.dot(originalDeltasX[j],
-          originalDeltasY[j], collisionPoint.normalX,
-          collisionPoint.normalY) +
-          Vector.dot(deltaX, deltaY, collisionPoint.normalX,
-            collisionPoint.normalY)) *
-          normalMass
+        let normalImpulse =
+          (Vector.dot(
+            originalDeltasX[j],
+            originalDeltasY[j],
+            collisionPoint.normalX,
+            collisionPoint.normalY
+          ) +
+            Vector.dot(
+              deltaX,
+              deltaY,
+              collisionPoint.normalX,
+              collisionPoint.normalY
+            )) *
+          normalMass *
+          -1
 
         // clamp
         const tmp = collisionPoint.accumulatedImpulse
         collisionPoint.accumulatedImpulse = Math.max(
-          collisionPoint.accumulatedImpulse + normalImpulse, 0)
+          collisionPoint.accumulatedImpulse + normalImpulse,
+          0
+        )
         normalImpulse = collisionPoint.accumulatedImpulse - tmp
         // console.log("impulse: " + normalImpulse)
 
@@ -124,7 +135,8 @@ class Collision {
         const nv1X = impulseX * ceIm
         const nv1Y = impulseY * ceIm
 
-        const nw1 = collisionPoint.collidingEntity.invertedInertia() *
+        const nw1 =
+          collisionPoint.collidingEntity.invertedInertia() *
           Vector.cross(r1X, r1Y, impulseX, impulseY)
 
         // Vector nv2 = Vector.scale(impulse,
@@ -137,10 +149,10 @@ class Collision {
         nv2X = -nv2X
         nv2Y = -nv2Y
 
-        const nw2 = -collisionPoint.impactedEntity.invertedInertia() *
+        const nw2 =
+          -collisionPoint.impactedEntity.invertedInertia() *
           Vector.cross(r2X, r2Y, impulseX, impulseY)
-        collisionPoint.addTempVelocities(nv1X, nv1Y, nw1, nv2X, nv2Y,
-          nw2)
+        collisionPoint.addTempVelocities(nv1X, nv1Y, nw1, nv2X, nv2Y, nw2)
       }
 
       // apply all temp velocites
@@ -149,8 +161,11 @@ class Collision {
       }
 
       iteration++
-    } while (accumulatedImpulse > 0.001 && iteration < 50 &&
-      accumulatedImpulse <= previousAccumulatedImpulse)
+    } while (
+      accumulatedImpulse > 0.001 &&
+      iteration < 50 &&
+      accumulatedImpulse <= previousAccumulatedImpulse
+    )
   }
 
   static mergeCollisions (collisions) {
