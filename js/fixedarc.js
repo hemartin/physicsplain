@@ -24,10 +24,10 @@ class FixedArc {
 
   collide (collidingBody, timestep, restitution) {
     let collision = null
-    for (let i = 0; i < 4; i++) {
+    for (let corner = 0; corner < 4; corner++) {
       // Vector vertex = body.vertex(i);
-      const vertexX = collidingBody.cornerX[i]
-      const vertexY = collidingBody.cornerY[i]
+      const vertexX = collidingBody.cornerX[corner]
+      const vertexY = collidingBody.cornerY[corner]
       const diffX = vertexX - this.origin.x
       const diffY = vertexY - this.origin.y
       const distance = Vector.length(diffX, diffY)

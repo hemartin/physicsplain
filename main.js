@@ -1,4 +1,11 @@
-import { State, Body, FixedArc, FixedBody, Vector } from './js/physicsplain.js'
+import {
+  State,
+  Body,
+  FixedArc,
+  FixedBody,
+  FixedCircle,
+  Vector
+} from './js/physicsplain.js'
 
 /**
  * Main entry point.
@@ -138,27 +145,35 @@ function createExample3 () {
 
   // bodies
   const state = new State()
-  state.movableBodies = [new Body(0).setOrigin(-0.7, 0.4).finalize()]
+  state.movableBodies = [
+    new Body(0).setOrigin(-0.9, 0.4).finalize(),
+    new Body(1).setOrigin(-0.8, 0.28).finalize(),
+    new Body(2).setOrigin(-0.7, 0.16).finalize()
+  ]
   state.fixedBodies = [
-    new FixedBody(1)
+    new FixedBody(3)
       .setOrigin(0, 0.6)
       .setDimension(2, 0.2)
       .finalize(),
-    new FixedBody(2)
+    new FixedBody(4)
       .setOrigin(0, -0.6)
       .setDimension(2, 0.2)
       .finalize(),
-    new FixedArc(33, new Vector(0.5, 0), 0.5, 0.2, 0, Math.PI * 0.5),
-    new FixedArc(34, new Vector(0.5, 0), 0.5, 0.2, Math.PI * 1.5, Math.PI * 2)
+    new FixedCircle(31, new Vector(0.1, 0), 0.15),
+    new FixedCircle(30, new Vector(0.5, 0), 0.15),
+    new FixedArc(32, new Vector(0.5, 0), 0.5, 0.2, 0, Math.PI * 0.5),
+    new FixedArc(33, new Vector(0.5, 0), 0.5, 0.2, Math.PI * 1.5, Math.PI * 2)
   ]
 
-  // initial velocity of impacting body
-  state.movableBodies[0].velocity.x = 4
+  // initial velocity of impacting bodies
+  for (const body of state.movableBodies) {
+    body.velocity.x = 3
+  }
 
   // colors
   const colors = []
   for (const body of state.movableBodies) {
-    colors[body.id] = body.id === 0 ? '#dfe0e2' : '#a5a6a9'
+    colors[body.id] = '#dfe0e2'
   }
   for (const body of state.fixedBodies) {
     colors[body.id] = '#2f292b'
@@ -187,9 +202,9 @@ window.onload = function () {
     resizeCanvas(examples)
   })
 
-  // repeating examples every 4s, 7s, 3s respectively
+  // repeating examples every 4s, 7s, 4s respectively
   const lastRepeat = [0, 0, 0]
-  const repeat = [4000, 7000, 3000]
+  const repeat = [4000, 7000, 4000]
   const initFuncs = [createExample1, createExample2, createExample3]
 
   // step function is called every time the browser refreshes the UI
@@ -211,8 +226,8 @@ window.onload = function () {
       )
     }
 
-    // draw circle for example 3
-    drawCircle(
+    // draw circles for example 3
+    drawCircles(
       examples[2].canvas,
       examples[2].context,
       examples[2].colors[examples[2].state.fixedBodies[0].id],
@@ -249,8 +264,8 @@ window.onload = function () {
  * Draws body on canvas.
  */
 function drawBody (body, canvas, context, colors) {
-  if (body.id > 30) {
-    // hack to ignore arcs
+  if (body.id >= 30) {
+    // hack to ignore circles and arcs
     return
   }
   context.fillStyle = colors[body.id]
@@ -264,9 +279,9 @@ function drawBody (body, canvas, context, colors) {
 }
 
 /*
- * Draws circle for example 3
+ * Draws circles for example 3
  */
-function drawCircle (canvas, context, wallColor, backgroundColor) {
+function drawCircles (canvas, context, wallColor, backgroundColor) {
   // draw big wall
   context.fillStyle = wallColor
   context.beginPath()
@@ -289,6 +304,21 @@ function drawCircle (canvas, context, wallColor, backgroundColor) {
     false
   )
   context.fill()
+
+  // draw circle of which objects bounce off
+  context.fillStyle = wallColor
+  for (const x of [0.1, 0.5]) {
+    context.beginPath()
+    context.arc(
+      tx(canvas, x),
+      ty(canvas, 0),
+      tx(canvas, 0.15) - tx(canvas, 0),
+      0,
+      2 * Math.PI,
+      false
+    )
+    context.fill()
+  }
 }
 
 /*
