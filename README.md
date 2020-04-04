@@ -2,7 +2,7 @@
 
 physicsplain is a simple 2D physics library written in JavaScript.  The library is intended for small browser games and animations.  physicsplain is lightweight in memory footprint and code size.
 
-This library is heavily inspired by Erin Catto's ![GDC slides](http://box2d.org/downloads/) and ![Box2D](http://box2d.org/).  However, it does not provide all functionality that Box2D offers (see limitations below).
+This library is heavily inspired by Erin Catto's [GDC slides](http://box2d.org/downloads/) and [Box2D](http://box2d.org/).  However, it does not provide all functionality that Box2D offers (see limitations below).
 
 ## Examples
 Below are a few examples as GIF animations.  Check out the [JavaScript examples](http://hemartin.github.io/physicsplain/).
@@ -16,8 +16,15 @@ Below are a few examples as GIF animations.  Check out the [JavaScript examples]
 ### Example 3
 ![example3](https://user-images.githubusercontent.com/344615/77963560-d8459880-72dd-11ea-8ff7-4c5510e3f2e3.gif)
 
+## Building the Minified Library
+Install rollup:
+- `npm install --save-dev rollup rollup-plugin-terser`
+
+Run rollup to create file `target/physicsplain-min.js`:
+- `npx rollup -c rollup.config.js`
+
 ## Known Limitations
-Currently only rectangles are supported by this library.
+Currently only rectangles are supported as moving bodies. Rectangles, arcs, and circles are supported as fixed bodies.
 
 Sometimes the following issues occur:
 - Object collisions are not resolved properly, which results in objects moving into each other.

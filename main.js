@@ -5,7 +5,7 @@ import {
   FixedBody,
   FixedCircle,
   Vector
-} from './js/physicsplain.js'
+} from './src/physicsplain.js'
 
 /**
  * Main entry point.
