@@ -15,7 +15,7 @@ export const bodyInfiniteMass = -1
  *
  * @author Martin Hentschel
  */
-class Body {
+export class Body {
   constructor (id) {
     this.id = id
     this.origin = new Vector(0, 0)
@@ -390,5 +390,3 @@ class Body {
     }
   }
 }
-
-export { Body }

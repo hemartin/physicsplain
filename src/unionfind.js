@@ -14,7 +14,7 @@ class UnionFindNode {
   }
 }
 
-class UnionFind {
+export class UnionFind {
   constructor () {
     this.nodes = []
   }
@@ -51,5 +51,3 @@ class UnionFind {
     }
   }
 }
-
-export { UnionFind }

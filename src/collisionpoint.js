@@ -5,7 +5,7 @@ import { Vector } from './vector.js'
  *
  * @author Martin Hentschel
  */
-class CollisionPoint {
+export class CollisionPoint {
   constructor (
     collidingEntity,
     impactedEntity,
@@ -74,5 +74,3 @@ class CollisionPoint {
     this.nw2 = 0
   }
 }
-
-export { CollisionPoint }

@@ -8,7 +8,7 @@ import { Collision } from './collision.js'
  *
  * @author Martin Hentschel
  */
-class State {
+export class State {
   constructor () {
     this.start = 0
     this.previous = 0
@@ -131,5 +131,3 @@ class State {
     return Collision.mergeCollisions(collisions)
   }
 }
-
-export { State }

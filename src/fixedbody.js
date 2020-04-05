@@ -6,11 +6,9 @@ import { Body, bodyInfiniteMass } from './body.js'
  *
  * @author Martin Hentschel
  */
-class FixedBody extends Body {
+export class FixedBody extends Body {
   constructor (id) {
     super(id)
     this.setMass(bodyInfiniteMass)
   }
 }
-
-export { FixedBody }

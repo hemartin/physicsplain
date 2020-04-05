@@ -23,7 +23,7 @@ import { Vector } from './vector.js'
  *
  * @author Martin Hentschel
  */
-class Collision {
+export class Collision {
   constructor (restitution) {
     this.restitution = restitution
     this.collisionPoints = []
@@ -203,5 +203,3 @@ class Collision {
     return mergedCollisions
   }
 }
-
-export { Collision }

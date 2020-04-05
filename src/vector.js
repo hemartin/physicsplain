@@ -3,7 +3,7 @@
  *
  * @author Martin Hentschel
  */
-class Vector {
+export class Vector {
   constructor (x, y) {
     this.x = x
     this.y = y
@@ -68,5 +68,3 @@ class Vector {
     return angle
   }
 }
-
-export { Vector }

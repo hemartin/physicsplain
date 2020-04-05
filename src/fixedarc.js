@@ -10,7 +10,7 @@ import { Vector } from './vector.js'
  *
  * @author Martin Hentschel
  */
-class FixedArc {
+export class FixedArc {
   constructor (id, origin, radius, width, startAngle, endAngle) {
     this.id = id
     this.origin = origin
@@ -81,5 +81,3 @@ class FixedArc {
   // fixed entity has no angular velocity
   addAngularVelocity (angularVelocity) {}
 }
-
-export { FixedArc }
