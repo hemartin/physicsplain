@@ -21,9 +21,25 @@ export class Vector {
     return this
   }
 
+  subtract (v) {
+    this.x -= v.x
+    this.y -= v.y
+    return this
+  }
+
   scale (f) {
     this.x *= f
     this.y *= f
+    return this
+  }
+
+  rotate (angle) {
+    var cos = Math.cos(angle)
+    var sin = Math.sin(angle)
+    var tmpx = this.x * cos - this.y * sin
+    var tmpy = this.x * sin + this.y * cos
+    this.x = tmpx
+    this.y = tmpy
     return this
   }
 
@@ -37,6 +53,12 @@ export class Vector {
 
   length () {
     return Math.sqrt(this.x * this.x + this.y * this.y)
+  }
+
+  distanceFrom (other) {
+    var diffX = this.x - other.x
+    var diffY = this.y - other.y
+    return Vector.length(diffX, diffY)
   }
 
   clear () {

@@ -42,7 +42,7 @@ export class Body {
     this.angleThrust = 0.02
 
     // corners, computed when calling finalize() after construction and
-    // after every
+    // after every call to advance()
     this.cornerX = [0, 0, 0, 0]
     this.cornerY = [0, 0, 0, 0]
   }
@@ -80,6 +80,17 @@ export class Body {
 
   setMass (m) {
     this.mass = m
+    return this
+  }
+
+  setVelocity (x, y) {
+    this.velocity.x = x
+    this.velocity.y = y
+    return this
+  }
+
+  setAngularVelocity (a) {
+    this.angularVelocity = a
     return this
   }
 
