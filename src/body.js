@@ -30,6 +30,16 @@ export class Body {
 
     // force that drives body forward
     this.force = new Vector(0, 0)
+    this.angularForce = 0
+
+    // target, where body is heading to (if targetSet = true)
+    this.target = new Vector(0, 0)
+    this.targetSet = false
+    this.thrust = 2
+
+    this.targetAngle = 0
+    this.targetAngleSet = false
+    this.angleThrust = 0.02
 
     // corners, computed when calling finalize() after construction and
     // after every
@@ -79,6 +89,24 @@ export class Body {
     return this
   }
 
+  setAngularForce (a) {
+    this.angularForce = a
+    return this
+  }
+
+  setTarget (x, y) {
+    this.target.x = x
+    this.target.y = y
+    this.targetSet = true
+    return this
+  }
+
+  setTargetAngle (a) {
+    this.targetAngle = a
+    this.targetAngleSet = true
+    return this
+  }
+
   advance (timestep) {
     // origin.add(Vector.scale(velocity, timestep))
     this.origin.x += this.velocity.x * timestep
@@ -95,9 +123,40 @@ export class Body {
   }
 
   applyForces (timestep) {
-    // apply force
-    this.velocity.x += this.force.x * timestep * this.invertedMass()
-    this.velocity.y += this.force.y * timestep * this.invertedMass()
+    // if target is set, we ignore force
+    if (this.targetSet) {
+      // calculate force
+      let forceX = this.target.x - this.origin.x
+      let forceY = this.target.y - this.origin.y
+      const forceLen = Vector.length(forceX, forceY)
+
+      // avoid division by zero
+      if (forceLen > 0) {
+        forceX *= this.thrust / forceLen
+        forceY *= this.thrust / forceLen
+
+        // apply force
+        this.velocity.x += forceX * timestep * this.invertedMass()
+        this.velocity.y += forceY * timestep * this.invertedMass()
+      }
+    } else {
+      // apply force if target is not set
+      this.velocity.x += this.force.x * timestep * this.invertedMass()
+      this.velocity.y += this.force.y * timestep * this.invertedMass()
+    }
+
+    if (this.targetAngleSet) {
+      // calculate angular force
+      let forceA = this.targetAngle - this.angle
+      if (forceA !== 0) {
+        forceA = this.angleThrust * Math.sign(forceA)
+        this.angularVelocity += forceA * timestep * this.invertedInertia()
+      }
+    } else {
+      // apply angular force if target is not set
+      this.angularVelocity +=
+        this.angularForce * timestep * this.invertedInertia()
+    }
 
     // apply friction
     this.velocity.scale(Math.max(0, 1 - timestep * this.lateralFriction))
@@ -197,12 +256,7 @@ export class Body {
 
   collideAllCorners (collision, collidingBody, timestep) {
     for (let corner = 0; corner < 4; corner++) {
-      this.collideSingleCorner(
-        collision,
-        collidingBody,
-        corner,
-        timestep
-      )
+      this.collideSingleCorner(collision, collidingBody, corner, timestep)
     }
   }
 

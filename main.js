@@ -70,8 +70,9 @@ class Example1 extends State {
       body.rotationalFriction = 7
     }
 
-    // force that moves body 1 forward
-    this.movingBodies[0].setForce(8, 0)
+    // target of body, increase thrust to make it move faster
+    this.movingBodies[0].setTarget(8, 0)
+    this.movingBodies[0].thrust = 8
   }
 
   // overridden generator methods returning bodies
