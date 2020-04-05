@@ -1,20 +1,15 @@
 import { Collision } from './collision.js'
 
 /**
- * The state contains all entities and advances them, including resolving
- * collisions.
- *
- * The state also contains constants specific to bodies and collisions. This is
- * why we pass the state on to bodies and collisions, so that they can access
- * these constants.
+ * Abstract state class that advances moving bodies. It collides moving bodies
+ * with each other and collides moving bodies with fixed bodies. Moving bodies
+ * and fixed bodies are passed via two generator functions *movingBodies() and
+ * *fixedBodies() which must be overridden by concrete state implementations.
  *
  * @author Martin Hentschel
  */
 class State {
   constructor () {
-    this.movableBodies = []
-    this.fixedBodies = []
-
     this.start = 0
     this.previous = 0
     this.remainder = 0
@@ -23,7 +18,36 @@ class State {
     this.restitution = 1
   }
 
+  /**
+   * @return{Generator} All moving bodies as an iterable. This is a generator
+   * method. Must be overridden by a state implementation.
+   */
+  * getMovingBodies () {}
+
+  /**
+   * @return{Generator} All fixed bodies as an iterable. This is a generator
+   * method. Must be overridden by a state implementation.
+   */
+  * getFixedBodies () {}
+
+  /**
+   * Called before advancing physics of bodies. Override if needed.
+   *
+   * @param {Number} now current timestamp
+   */
+  preAdvance (now) {}
+
+  /**
+   * Called after advancing physics of bodies. Override if needed.
+   *
+   * @param {Number} now current timestamp
+   */
+  postAdvance (now) {}
+
   advance (now) {
+    // call callback
+    this.preAdvance(now)
+
     const fixedTimestep = 10 // in ms
 
     if (this.start === 0) {
@@ -41,6 +65,9 @@ class State {
     }
     this.previous = now
     this.remainder = timestep
+
+    // call callback
+    this.postAdvance(now)
   }
 
   advanceByTimestep (timestep) {
@@ -48,7 +75,7 @@ class State {
     const collisions = this.collide(timestep)
 
     // apply forces
-    for (const body of this.movableBodies) {
+    for (const body of this.getMovingBodies()) {
       body.applyForces(timestep)
     }
 
@@ -58,7 +85,7 @@ class State {
     }
 
     // advance body
-    for (const body of this.movableBodies) {
+    for (const body of this.getMovingBodies()) {
       body.advance(timestep)
     }
   }
@@ -67,31 +94,36 @@ class State {
     const collisions = []
 
     // collide movable bodies with each other
-    const movableBodiesCount = this.movableBodies.length
-    for (let i = 0; i < movableBodiesCount - 1; i++) {
-      for (let j = i + 1; j < movableBodiesCount; j++) {
-        const newCollision = this.movableBodies[i].collide(
-          this.movableBodies[j],
-          timestep,
-          this.restitution
-        )
-        if (newCollision !== null) {
-          collisions.push(newCollision)
+    const lookedAt = new Set()
+    for (const movingBody1 of this.getMovingBodies()) {
+      // remember id of movingBody1
+      lookedAt.add(movingBody1.id)
+
+      // collide bodies if id not in set
+      for (const movingBody2 of this.getMovingBodies()) {
+        if (!lookedAt.has(movingBody2.id)) {
+          const collision = movingBody1.collide(
+            movingBody2,
+            timestep,
+            this.restitution
+          )
+          if (collision !== null) {
+            collisions.push(collision)
+          }
         }
       }
     }
 
     // collide each movable body with all fixed bodies
-    const fixedBodiesCount = this.fixedBodies.length
-    for (let i = 0; i < movableBodiesCount; i++) {
-      for (let j = 0; j < fixedBodiesCount; j++) {
-        const newCollision = this.fixedBodies[j].collide(
-          this.movableBodies[i],
+    for (const fixedBody of this.getFixedBodies()) {
+      for (const movingBody of this.getMovingBodies()) {
+        const collision = fixedBody.collide(
+          movingBody,
           timestep,
           this.restitution
         )
-        if (newCollision !== null) {
-          collisions.push(newCollision)
+        if (collision !== null) {
+          collisions.push(collision)
         }
       }
     }

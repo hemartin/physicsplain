@@ -7,185 +7,288 @@ import {
   Vector
 } from './src/physicsplain.js'
 
-/**
+/*
  * Main entry point.
  *
  * Creates examples, advances physics, and updates graphics.
  *
- * We advance the physics in fixed timesteps of 10 milliseconds, and update the
- * graphics as often as the browser allows us to. The technique of separating
- * physics and graphics is adapted from:
- * http://gafferongames.com/game-physics/fix-your-timestep/
- *
  * @author Martin Hentschel
  */
-
 const canvasWidth = 500
 const canvasHeight = 260
 
-function createExample1 () {
-  // DOM elements
-  const canvas = document.getElementById('canvas1')
-  const context = canvas.getContext('2d')
+class Example1 extends State {
+  constructor (document) {
+    super()
+    this.canvas = document.getElementById('canvas1')
+    this.context = this.canvas.getContext('2d')
+    this.backgroundColor = '#e0e5db'
+    this.repeat = 4000 // repeat example every 4 seconds
+    this.lastRepeat = 0
 
-  // bodies
-  const state = new State()
-  state.movableBodies = [
-    new Body(0).setOrigin(-1.3, 0).finalize(),
-    new Body(1).setOrigin(-0.4, 0.09).finalize(),
-    new Body(2).setOrigin(-0.4, -0.09).finalize(),
-    new Body(3).setOrigin(-0.2, 0.09).finalize(),
-    new Body(4).setOrigin(-0.2, -0.09).finalize(),
-    new Body(5).setOrigin(0.2, 0.09).finalize(),
-    new Body(6).setOrigin(0.2, -0.09).finalize(),
-    new Body(7).setOrigin(0.4, 0.09).finalize(),
-    new Body(8).setOrigin(0.4, -0.09).finalize()
-  ]
-  state.fixedBodies = [
-    new FixedBody(9)
-      .setOrigin(0, 0.38)
-      .setDimension(0.1, 0.5)
-      .finalize(),
-    new FixedBody(10)
-      .setOrigin(0, -0.38)
-      .setDimension(0.1, 0.5)
-      .finalize()
-  ]
+    // bodies
+    this.movingBodies = []
+    this.fixedBodies = []
+    this.initBodies()
 
-  // set friction
-  for (const body of state.movableBodies) {
-    body.lateralFriction = 1
-    body.rotationalFriction = 7
+    // colors
+    this.colors = []
+    for (const body of this.movingBodies) {
+      this.colors[body.id] = body.id === 0 ? '#00b8b8' : '#e4bd0b'
+    }
+    for (const body of this.fixedBodies) {
+      this.colors[body.id] = '#de3d83'
+    }
   }
 
-  // force that moves body 1 forward
-  state.movableBodies[0].setForce(8, 0)
+  initBodies () {
+    this.movingBodies = [
+      new Body(0).setOrigin(-1.3, 0).finalize(),
+      new Body(1).setOrigin(-0.4, 0.09).finalize(),
+      new Body(2).setOrigin(-0.4, -0.09).finalize(),
+      new Body(3).setOrigin(-0.2, 0.09).finalize(),
+      new Body(4).setOrigin(-0.2, -0.09).finalize(),
+      new Body(5).setOrigin(0.2, 0.09).finalize(),
+      new Body(6).setOrigin(0.2, -0.09).finalize(),
+      new Body(7).setOrigin(0.4, 0.09).finalize(),
+      new Body(8).setOrigin(0.4, -0.09).finalize()
+    ]
+    this.fixedBodies = [
+      new FixedBody(9)
+        .setOrigin(0, 0.38)
+        .setDimension(0.1, 0.5)
+        .finalize(),
+      new FixedBody(10)
+        .setOrigin(0, -0.38)
+        .setDimension(0.1, 0.5)
+        .finalize()
+    ]
 
-  // colors
-  const colors = []
-  for (const body of state.movableBodies) {
-    colors[body.id] = body.id === 0 ? '#00b8b8' : '#e4bd0b'
-  }
-  for (const body of state.fixedBodies) {
-    colors[body.id] = '#de3d83'
-  }
+    // set friction
+    for (const body of this.movingBodies) {
+      body.lateralFriction = 1
+      body.rotationalFriction = 7
+    }
 
-  // return object that contains all information
-  return {
-    canvas: canvas,
-    context: context,
-    state: state,
-    backgroundColor: '#e0e5db',
-    colors: colors
-  }
-}
-
-function createExample2 () {
-  // DOM elements
-  const canvas = document.getElementById('canvas2')
-  const context = canvas.getContext('2d')
-
-  // bodies
-  const state = new State()
-  state.movableBodies = [
-    new Body(0).setOrigin(-0.7, 0.5).finalize(),
-    new Body(1).setOrigin(-0.5, 0.5).finalize(),
-    new Body(2).setOrigin(-0.3, 0.5).finalize(),
-    new Body(3).setOrigin(0.3, 0.5).finalize(),
-    new Body(4).setOrigin(0.5, 0.5).finalize(),
-    new Body(5).setOrigin(0.7, 0.5).finalize()
-  ]
-  state.fixedBodies = [
-    new FixedBody(6)
-      .setOrigin(-0.7, -0.5)
-      .setAngle(-0.1 * Math.PI)
-      .setDimension(1, 0.5)
-      .finalize(),
-    new FixedBody(7)
-      .setOrigin(0.7, -0.5)
-      .setAngle(0.1 * Math.PI)
-      .setDimension(1, 0.5)
-      .finalize()
-  ]
-
-  // set friction
-  for (const body of state.movableBodies) {
-    body.lateralFriction = 0.5
-    body.rotationalFriction = 2
+    // force that moves body 1 forward
+    this.movingBodies[0].setForce(8, 0)
   }
 
-  // set downwards force to all movable bodies
-  for (const body of state.movableBodies) {
-    body.setForce(0, -2)
+  // overridden generator methods returning bodies
+  * getMovingBodies () {
+    yield * this.movingBodies
   }
 
-  // colors
-  const colors = []
-  for (const body of state.movableBodies) {
-    colors[body.id] = body.id < 3 ? '#e5e7de' : '#f54123'
-  }
-  for (const body of state.fixedBodies) {
-    colors[body.id] = '#0b3536'
+  * getFixedBodies () {
+    yield * this.fixedBodies
   }
 
-  // return object that contains all information
-  return {
-    canvas: canvas,
-    context: context,
-    state: state,
-    backgroundColor: '#0098d8',
-    colors: colors
+  postAdvance (now) {
+    // clear canvas
+    this.context.fillStyle = this.backgroundColor
+    this.context.fillRect(0, 0, this.canvas.width, this.canvas.height)
+
+    // draw bodies
+    for (const body of this.movingBodies) {
+      drawBody(body, this.canvas, this.context, this.colors)
+    }
+    for (const body of this.fixedBodies) {
+      drawBody(body, this.canvas, this.context, this.colors)
+    }
+
+    // reset example if repeat time has passed
+    if (this.lastRepeat === 0) {
+      this.lastRepeat = now
+    }
+    if (now - this.lastRepeat > this.repeat) {
+      this.initBodies()
+      this.lastRepeat = now
+    }
   }
 }
 
-function createExample3 () {
-  // DOM elements
-  const canvas = document.getElementById('canvas3')
-  const context = canvas.getContext('2d')
+class Example2 extends State {
+  constructor (document) {
+    super()
+    // DOM elements
+    this.canvas = document.getElementById('canvas2')
+    this.context = this.canvas.getContext('2d')
+    this.backgroundColor = '#0098d8'
+    this.repeat = 7000 // repeat example every 7 seconds
+    this.lastRepeat = 0
 
-  // bodies
-  const state = new State()
-  state.movableBodies = [
-    new Body(0).setOrigin(-0.9, 0.4).finalize(),
-    new Body(1).setOrigin(-0.8, 0.28).finalize(),
-    new Body(2).setOrigin(-0.7, 0.16).finalize()
-  ]
-  state.fixedBodies = [
-    new FixedBody(3)
-      .setOrigin(0, 0.6)
-      .setDimension(2, 0.2)
-      .finalize(),
-    new FixedBody(4)
-      .setOrigin(0, -0.6)
-      .setDimension(2, 0.2)
-      .finalize(),
-    new FixedCircle(31, new Vector(0.1, 0), 0.15),
-    new FixedCircle(30, new Vector(0.5, 0), 0.15),
-    new FixedArc(32, new Vector(0.5, 0), 0.5, 0.2, 0, Math.PI * 0.5),
-    new FixedArc(33, new Vector(0.5, 0), 0.5, 0.2, Math.PI * 1.5, Math.PI * 2)
-  ]
+    // bodies
+    this.movingBodies = []
+    this.fixedBodies = []
+    this.initBodies()
 
-  // initial velocity of impacting bodies
-  for (const body of state.movableBodies) {
-    body.velocity.x = 3
+    // colors
+    this.colors = []
+    for (const body of this.movingBodies) {
+      this.colors[body.id] = body.id < 3 ? '#e5e7de' : '#f54123'
+    }
+    for (const body of this.fixedBodies) {
+      this.colors[body.id] = '#0b3536'
+    }
   }
 
-  // colors
-  const colors = []
-  for (const body of state.movableBodies) {
-    colors[body.id] = '#dfe0e2'
-  }
-  for (const body of state.fixedBodies) {
-    colors[body.id] = '#2f292b'
+  initBodies () {
+    this.movingBodies = [
+      new Body(0).setOrigin(-0.7, 0.5).finalize(),
+      new Body(1).setOrigin(-0.5, 0.5).finalize(),
+      new Body(2).setOrigin(-0.3, 0.5).finalize(),
+      new Body(3).setOrigin(0.3, 0.5).finalize(),
+      new Body(4).setOrigin(0.5, 0.5).finalize(),
+      new Body(5).setOrigin(0.7, 0.5).finalize()
+    ]
+    this.fixedBodies = [
+      new FixedBody(6)
+        .setOrigin(-0.7, -0.5)
+        .setAngle(-0.1 * Math.PI)
+        .setDimension(1, 0.5)
+        .finalize(),
+      new FixedBody(7)
+        .setOrigin(0.7, -0.5)
+        .setAngle(0.1 * Math.PI)
+        .setDimension(1, 0.5)
+        .finalize()
+    ]
+
+    // set friction
+    for (const body of this.movingBodies) {
+      body.lateralFriction = 0.5
+      body.rotationalFriction = 2
+    }
+
+    // set downwards force to all movable bodies
+    for (const body of this.movingBodies) {
+      body.setForce(0, -2)
+    }
   }
 
-  // return object that contains all information
-  return {
-    canvas: canvas,
-    context: context,
-    state: state,
-    backgroundColor: '#f45844',
-    colors: colors
+  // overridden generator methods returning bodies
+  * getMovingBodies () {
+    yield * this.movingBodies
+  }
+
+  * getFixedBodies () {
+    yield * this.fixedBodies
+  }
+
+  postAdvance (now) {
+    // clear canvas
+    this.context.fillStyle = this.backgroundColor
+    this.context.fillRect(0, 0, this.canvas.width, this.canvas.height)
+
+    // draw bodies
+    for (const body of this.movingBodies) {
+      drawBody(body, this.canvas, this.context, this.colors)
+    }
+    for (const body of this.fixedBodies) {
+      drawBody(body, this.canvas, this.context, this.colors)
+    }
+
+    // reset example if repeat time has passed
+    if (this.lastRepeat === 0) {
+      this.lastRepeat = now
+    }
+    if (now - this.lastRepeat > this.repeat) {
+      this.initBodies()
+      this.lastRepeat = now
+    }
+  }
+}
+
+class Example3 extends State {
+  constructor (document) {
+    super()
+    // DOM elements
+    this.canvas = document.getElementById('canvas3')
+    this.context = this.canvas.getContext('2d')
+    this.backgroundColor = '#f45844'
+    this.repeat = 4000 // repeat example every 4 seconds
+    this.lastRepeat = 0
+
+    // bodies
+    this.movingBodies = []
+    this.fixedBodies = []
+    this.initBodies()
+
+    // colors
+    this.colors = []
+    for (const body of this.movingBodies) {
+      this.colors[body.id] = '#dfe0e2'
+    }
+    for (const body of this.fixedBodies) {
+      this.colors[body.id] = '#2f292b'
+    }
+  }
+
+  initBodies () {
+    this.movingBodies = [
+      new Body(0).setOrigin(-0.9, 0.4).finalize(),
+      new Body(1).setOrigin(-0.8, 0.28).finalize(),
+      new Body(2).setOrigin(-0.7, 0.16).finalize()
+    ]
+    this.fixedBodies = [
+      new FixedBody(3)
+        .setOrigin(0, 0.6)
+        .setDimension(2, 0.2)
+        .finalize(),
+      new FixedBody(4)
+        .setOrigin(0, -0.6)
+        .setDimension(2, 0.2)
+        .finalize(),
+      new FixedCircle(31, new Vector(0.1, 0), 0.15),
+      new FixedCircle(30, new Vector(0.5, 0), 0.15),
+      new FixedArc(32, new Vector(0.5, 0), 0.5, 0.2, 0, Math.PI * 0.5),
+      new FixedArc(33, new Vector(0.5, 0), 0.5, 0.2, Math.PI * 1.5, Math.PI * 2)
+    ]
+
+    // initial velocity of impacting bodies
+    for (const body of this.movingBodies) {
+      body.velocity.x = 3
+    }
+  }
+
+  // overridden generator methods returning bodies
+  * getMovingBodies () {
+    yield * this.movingBodies
+  }
+
+  * getFixedBodies () {
+    yield * this.fixedBodies
+  }
+
+  postAdvance (now) {
+    // clear canvas
+    this.context.fillStyle = this.backgroundColor
+    this.context.fillRect(0, 0, this.canvas.width, this.canvas.height)
+
+    // draw circles
+    drawCircles(
+      this.canvas,
+      this.context,
+      this.colors[this.fixedBodies[0].id],
+      this.backgroundColor
+    )
+
+    // draw bodies
+    for (const body of this.movingBodies) {
+      drawBody(body, this.canvas, this.context, this.colors)
+    }
+    for (const body of this.fixedBodies) {
+      drawBody(body, this.canvas, this.context, this.colors)
+    }
+
+    // reset example if repeat time has passed
+    if (this.lastRepeat === 0) {
+      this.lastRepeat = now
+    }
+    if (now - this.lastRepeat > this.repeat) {
+      this.initBodies()
+      this.lastRepeat = now
+    }
   }
 }
 
@@ -194,7 +297,11 @@ function createExample3 () {
  */
 window.onload = function () {
   // initialize examples
-  const examples = [createExample1(), createExample2(), createExample3()]
+  const examples = [
+    new Example1(document),
+    new Example2(document),
+    new Example3(document)
+  ]
 
   // initially resize canvas, and also listen for resize events
   resizeCanvas(examples)
@@ -202,55 +309,11 @@ window.onload = function () {
     resizeCanvas(examples)
   })
 
-  // repeating examples every 4s, 7s, 4s respectively
-  const lastRepeat = [0, 0, 0]
-  const repeat = [4000, 7000, 4000]
-  const initFuncs = [createExample1, createExample2, createExample3]
-
   // step function is called every time the browser refreshes the UI
   function step (now) {
     // advance state of all examples
     for (const example of examples) {
-      example.state.advance(now)
-    }
-
-    // clear all examples
-    for (const example of examples) {
-      // clear canvas
-      example.context.fillStyle = example.backgroundColor
-      example.context.fillRect(
-        0,
-        0,
-        example.canvas.width,
-        example.canvas.height
-      )
-    }
-
-    // draw circles for example 3
-    drawCircles(
-      examples[2].canvas,
-      examples[2].context,
-      examples[2].colors[examples[2].state.fixedBodies[0].id],
-      examples[2].backgroundColor
-    )
-
-    // draw bodies for all examples
-    for (const example of examples) {
-      // draw bodies
-      for (const body of example.state.movableBodies) {
-        drawBody(body, example.canvas, example.context, example.colors)
-      }
-      for (const body of example.state.fixedBodies) {
-        drawBody(body, example.canvas, example.context, example.colors)
-      }
-    }
-
-    // repeat examples
-    for (let i = 0; i < examples.length; i++) {
-      if (now - lastRepeat[i] > repeat[i]) {
-        examples[i] = initFuncs[i]()
-        lastRepeat[i] = now
-      }
+      example.advance(now)
     }
 
     // request next animation frame from browser
