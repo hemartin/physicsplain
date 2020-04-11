@@ -34,10 +34,10 @@ export class Vector {
   }
 
   rotate (angle) {
-    var cos = Math.cos(angle)
-    var sin = Math.sin(angle)
-    var tmpx = this.x * cos - this.y * sin
-    var tmpy = this.x * sin + this.y * cos
+    const cos = Math.cos(angle)
+    const sin = Math.sin(angle)
+    const tmpx = this.x * cos - this.y * sin
+    const tmpy = this.x * sin + this.y * cos
     this.x = tmpx
     this.y = tmpy
     return this
@@ -56,8 +56,8 @@ export class Vector {
   }
 
   distanceFrom (other) {
-    var diffX = this.x - other.x
-    var diffY = this.y - other.y
+    const diffX = this.x - other.x
+    const diffY = this.y - other.y
     return Vector.length(diffX, diffY)
   }
 
