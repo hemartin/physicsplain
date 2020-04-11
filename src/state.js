@@ -44,6 +44,23 @@ export class State {
    */
   postAdvance (now) {}
 
+  /**
+   * Evaluates whether two bodies should collide. Order of bodies does not
+   * matter.
+   *
+   * @param {Body} body1 first body (or circle or arc)
+   * @param {Body} body2 second body (or circle or arc)
+   * @returns true if bodies should collide
+   */
+  collideBodies (body1, body2) {
+    return true
+  }
+
+  /**
+   * Advances bodies given current timestamp.
+   *
+   * @param {Number} now current timestamp in ms
+   */
   advance (now) {
     // call callback
     this.preAdvance(now)
@@ -70,6 +87,12 @@ export class State {
     this.postAdvance(now)
   }
 
+  /**
+   * Advances bodies by given timestamp (typically in the order of 10
+   * milliseconds).
+   *
+   * @param {Number} timestep timestep
+   */
   advanceByTimestep (timestep) {
     // check for collisions
     const collisions = this.collide(timestep)
@@ -90,6 +113,13 @@ export class State {
     }
   }
 
+  /**
+   * Collides all movable bodies with each other and all movable bodies against
+   * all fixed bodies. Applies predicate (if defined) to evaluate if bodies
+   * should collide.
+   *
+   * @param {Number} timestep timestep
+   */
   collide (timestep) {
     const collisions = []
 
@@ -101,7 +131,11 @@ export class State {
 
       // collide bodies if id not in set
       for (const movingBody2 of this.getMovingBodies()) {
-        if (!lookedAt.has(movingBody2.id)) {
+        if (
+          !lookedAt.has(movingBody2.id) &&
+          this.collideBodies(movingBody1, movingBody2) &&
+          this.collideBodies(movingBody2, movingBody1)
+        ) {
           const collision = movingBody1.collide(
             movingBody2,
             timestep,
@@ -117,13 +151,18 @@ export class State {
     // collide each movable body with all fixed bodies
     for (const fixedBody of this.getFixedBodies()) {
       for (const movingBody of this.getMovingBodies()) {
-        const collision = fixedBody.collide(
-          movingBody,
-          timestep,
-          this.restitution
-        )
-        if (collision !== null) {
-          collisions.push(collision)
+        if (
+          this.collideBodies(fixedBody, movingBody) &&
+          this.collideBodies(movingBody, fixedBody)
+        ) {
+          const collision = fixedBody.collide(
+            movingBody,
+            timestep,
+            this.restitution
+          )
+          if (collision !== null) {
+            collisions.push(collision)
+          }
         }
       }
     }
