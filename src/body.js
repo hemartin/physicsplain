@@ -112,10 +112,26 @@ export class Body {
     return this
   }
 
+  hasTarget () {
+    return this.targetSet
+  }
+
+  unsetTarget () {
+    this.targetSet = false
+  }
+
   setTargetAngle (a) {
     this.targetAngle = a
     this.targetAngleSet = true
     return this
+  }
+
+  hasTargetAngle () {
+    return this.targetAngleSet
+  }
+
+  unsetTargetAngle () {
+    this.targetAngleSet = false
   }
 
   advance (timestep) {
