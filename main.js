@@ -6,6 +6,7 @@ import {
   FixedCircle,
   Vector
 } from './src/physicsplain.js'
+import { FixedLine } from './src/fixedline.js'
 
 /*
  * Main entry point.
@@ -293,6 +294,82 @@ class Example3 extends State {
   }
 }
 
+class Example4 extends State {
+  constructor (document) {
+    super()
+    // DOM elements
+    this.canvas = document.getElementById('canvas4')
+    this.context = this.canvas.getContext('2d')
+    this.backgroundColor = '#fff4c4'
+    this.repeat = 3000 // repeat example every 3 seconds
+    this.lastRepeat = 0
+
+    // bodies
+    this.movingBodies = []
+    this.fixedBodies = []
+    this.initBodies()
+
+    // colors
+    this.colors = []
+    for (const body of this.movingBodies) {
+      this.colors[body.id] = '#7e5c9f'
+    }
+  }
+
+  initBodies () {
+    this.movingBodies = [
+      new Body(0).setOrigin(-0.8, 0.35).finalize(),
+      new Body(1).setOrigin(-0.8, 0.05).finalize(),
+      new Body(2).setOrigin(-0.8, -0.35).finalize()
+    ]
+    this.fixedBodies = [
+      new FixedLine(3, new Vector(0.5, -1), new Vector(0.5, 1)),
+      new FixedLine(4, new Vector(-0.1, -0.6), new Vector(1, 0))
+    ]
+
+    // initial velocity of impacting bodies
+    this.movingBodies[0].velocity.x = 2.2
+    this.movingBodies[1].velocity.x = 2.2
+    this.movingBodies[1].angularVelocity = 4
+    this.movingBodies[2].velocity.x = 2.2
+  }
+
+  // overridden generator methods returning bodies
+  * getMovingBodies () {
+    yield * this.movingBodies
+  }
+
+  * getFixedBodies () {
+    yield * this.fixedBodies
+  }
+
+  postAdvance (now) {
+    // clear canvas
+    this.context.fillStyle = this.backgroundColor
+    this.context.fillRect(0, 0, this.canvas.width, this.canvas.height)
+
+    // draw lines
+    drawLine(this.canvas, this.context, this.fixedBodies[0], 1, '#d2c4e0')
+    drawLine(this.canvas, this.context, this.fixedBodies[1], 1, '#d2c4e0')
+    drawLine(this.canvas, this.context, this.fixedBodies[0], 0.01, '#66408b')
+    drawLine(this.canvas, this.context, this.fixedBodies[1], 0.01, '#66408b')
+
+    // draw bodies
+    for (const body of this.movingBodies) {
+      drawBody(body, this.canvas, this.context, this.colors)
+    }
+
+    // reset example if repeat time has passed
+    if (this.lastRepeat === 0) {
+      this.lastRepeat = now
+    }
+    if (now - this.lastRepeat > this.repeat) {
+      this.initBodies()
+      this.lastRepeat = now
+    }
+  }
+}
+
 /**
  * Main loop. Initializes examples, advances physics, and updates graphics.
  */
@@ -301,7 +378,8 @@ window.onload = function () {
   const examples = [
     new Example1(document),
     new Example2(document),
-    new Example3(document)
+    new Example3(document),
+    new Example4(document)
   ]
 
   // initially resize canvas, and also listen for resize events
@@ -383,6 +461,24 @@ function drawCircles (canvas, context, wallColor, backgroundColor) {
     )
     context.fill()
   }
+}
+
+/*
+ * Draws line for example 4
+ */
+function drawLine (canvas, context, line, width, lineColor) {
+  const nx = line.normal.x * width
+  const ny = line.normal.y * width
+
+  // draw background to the right
+  context.fillStyle = lineColor
+  context.beginPath()
+  context.moveTo(tx(canvas, line.start.x), ty(canvas, line.start.y))
+  context.lineTo(tx(canvas, line.start.x - nx), ty(canvas, line.start.y - ny))
+  context.lineTo(tx(canvas, line.end.x - nx), ty(canvas, line.end.y - ny))
+  context.lineTo(tx(canvas, line.end.x), ty(canvas, line.end.y))
+  context.closePath()
+  context.fill()
 }
 
 /*
