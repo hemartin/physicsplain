@@ -16,6 +16,9 @@ Below are a few examples as GIF animations.  Check out the [JavaScript examples]
 ### Example 3
 ![example3](https://user-images.githubusercontent.com/344615/77963560-d8459880-72dd-11ea-8ff7-4c5510e3f2e3.gif)
 
+### Example 4
+![example4](https://user-images.githubusercontent.com/344615/79692816-830b0000-8267-11ea-834f-5c8bf385f489.gif)
+
 ## Building the Minified Library
 Install rollup:
 - `npm install --save-dev rollup rollup-plugin-terser`
@@ -24,7 +27,7 @@ Run rollup to create file `target/physicsplain-min.js`:
 - `npx rollup -c rollup.config.js`
 
 ## Known Limitations
-Currently only rectangles are supported as moving bodies. Rectangles, arcs, and circles are supported as fixed bodies.
+Currently only rectangles are supported as moving bodies. Rectangles, arcs, circles, and lines are supported as fixed bodies.
 
 Sometimes the following issues occur:
 - Object collisions are not resolved properly, which results in objects moving into each other.

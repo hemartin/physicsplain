@@ -4,9 +4,9 @@ import {
   FixedArc,
   FixedBody,
   FixedCircle,
+  FixedLine,
   Vector
 } from './src/physicsplain.js'
-import { FixedLine } from './src/fixedline.js'
 
 /*
  * Main entry point.
