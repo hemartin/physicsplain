@@ -38,7 +38,21 @@ export class State {
   preAdvance (now) {}
 
   /**
-   * Called after advancing physics of bodies. Override if needed.
+   * Called after each step when advancing physics. Override if needed
+   * to update physics (e.g. set new targets of bodies). This keeps
+   * physics consistent even if application is replayed at different
+   * frames per second later.
+   *
+   * @param {Number} fixedTimestep fixed timestep
+   */
+  postStep (fixedTimestep) {}
+
+  /**
+   * Called after advancing physics of bodies. Override if needed to
+   * udpate graphics. Most of the time, multiple steps of physics
+   * simulations will be run in one call to advance(). Graphics should
+   * only be updated after all steps have finished to avoid
+   * unnecessary computation.
    *
    * @param {Number} now current timestamp
    */
@@ -79,11 +93,14 @@ export class State {
     while (timestep > fixedTimestep) {
       this.advanceByTimestep(fixedTimestep / 1000)
       timestep -= fixedTimestep
+
+      // call callback, lets application update physics (e.g. targets)
+      this.postStep(fixedTimestep)
     }
     this.previous = now
     this.remainder = timestep
 
-    // call callback
+    // call callback, lets application update graphics
     this.postAdvance(now)
   }
 
