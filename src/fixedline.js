@@ -68,7 +68,13 @@ export class FixedLine {
   }
 
   /**
-   * Returns true if colliding body overlaps with this line.
+   * Returns true if colliding body overlaps with this line. Also returns
+   * leftOf and rightOf properties. LeftOf is defined as the x coordinate
+   * of at least one corner of the colliding body being within bounds of
+   * this line and the y coordinate of the corner being above this line.
+   * The line and body are rotated for the line to be horizontal to
+   * determine leftOf. RightOf is defined just as leftOf but with the
+   * y coordinate being below this line.
    *
    * @param {Body} collidingBody colliding body
    */
@@ -102,7 +108,11 @@ export class FixedLine {
 
     // collidingBody overlaps with line if at least one corner is left of
     // and at leastone corner is right of line
-    return leftOf && rightOf
+    return {
+      leftOf: leftOf,
+      rightOf: rightOf,
+      overlaps: leftOf && rightOf
+    }
   }
 
   // this is a fixed entity

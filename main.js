@@ -470,7 +470,6 @@ function drawLine (canvas, context, line, width, lineColor) {
   const nx = line.normal.x * width
   const ny = line.normal.y * width
 
-  // draw background to the right
   context.fillStyle = lineColor
   context.beginPath()
   context.moveTo(tx(canvas, line.start.x), ty(canvas, line.start.y))
