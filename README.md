@@ -2,7 +2,7 @@
 
 physicsplain is a simple 2D physics library written in JavaScript.  The library is intended for small browser games and animations.  physicsplain is lightweight in memory footprint and code size.
 
-This library is heavily inspired by Erin Catto's [GDC slides](http://box2d.org/downloads/) and [Box2D](http://box2d.org/).  However, it does not provide all functionality that Box2D offers (see limitations below).
+This library is heavily inspired by Erin Catto's [GDC slides](http://box2d.org/publications/) and [Box2D](http://box2d.org/).  However, it does not provide all functionality that Box2D offers (see limitations below).
 
 ## Examples
 Below are a few examples as GIF animations.  Check out the [JavaScript examples](http://hemartin.github.io/physicsplain/).
@@ -37,7 +37,7 @@ Consider using Box2D or other physics libraries if your project is impacted by t
 
 ## Acknowledgments
 This project was inspired by the following projects and websites:
-- Erin Catto's [GDC slides](http://box2d.org/downloads/) and [Box2D](http://box2d.org/)
+- Erin Catto's [GDC slides](http://box2d.org/publications/) and [Box2D](http://box2d.org/)
 - Physics simulations at [myPhysicsLab](http://www.myphysicslab.com/)
 - Separating physics and graphics from [Fix Your Timestep!](http://gafferongames.com/game-physics/fix-your-timestep/)
 - Union-Find algorithm from [Algorithms, 4th Edition](http://algs4.cs.princeton.edu/home/) and [Wikipedia](https://en.wikipedia.org/wiki/Disjoint-set_data_structure)
