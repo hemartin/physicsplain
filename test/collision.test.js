@@ -68,11 +68,11 @@ test('separation belongs to the edge of the normal', () => {
   }
 })
 
-for (const [name, offset] of [['aligned', 0], ['offset', 0.01]]) {
-  test(`${name} stack of three boxes keeps its height under gravity`, () => {
+for (const [name, offset, restitution] of [['aligned', 0, 0], ['offset', 0.01, 0], ['aligned', 0, 1], ['offset', 0.01, 1]]) {
+  test(`${name} stack of three boxes keeps its height under gravity, restitution ${restitution}`, () => {
     const boxes = [0, 1, 2].map(i => new Body(i + 1).setOrigin(offset * i, 0.05 + 0.1 * i).setForce(0, -2).finalize())
     const state = new TestState(boxes, [floor()])
-    state.restitution = 0
+    state.restitution = restitution
     for (let i = 0; i < 500; i++) {
       state.advanceByTimestep(0.01)
     }
@@ -164,6 +164,66 @@ test('elastic bounce of a penetrating box keeps its speed', () => {
   const box = new Body(1).setOrigin(0, 0.04).setVelocity(0, -1).finalize()
   collideAndApply(new TestState([box], [floor()]))
   assert.ok(Math.abs(box.velocity.y - 1) < 0.01, `vy ${box.velocity.y}`)
+})
+
+test('elastic bounce under gravity keeps its height', () => {
+  const box = new Body(1).setOrigin(0, 0.55).setForce(0, -2).finalize()
+  box.lateralFriction = 0
+  box.rotationalFriction = 0
+  const state = new TestState([box], [floor()])
+  state.restitution = 1
+  const apexes = []
+  let previousVy = 0
+  for (let i = 0; i < 1500; i++) {
+    state.advanceByTimestep(0.01)
+    if (previousVy > 0 && box.velocity.y <= 0) {
+      apexes.push(box.origin.y)
+    }
+    previousVy = box.velocity.y
+  }
+  assert.ok(apexes.length >= 5, `${apexes.length} bounces`)
+  for (const apex of apexes) {
+    assert.ok(Math.abs(apex - 0.55) < 0.001, `apexes ${apexes.map(a => a.toFixed(4))}`)
+  }
+})
+
+test('narrow box landing on its short end does not start spinning', () => {
+  for (const width of [0.01, 0.02]) {
+    for (const restitution of [0, 0.5, 1]) {
+      const box = new Body(1).setOrigin(0, 0.205).setDimension(width, 0.4).setVelocity(0, -1).finalize()
+      box.lateralFriction = 0
+      box.rotationalFriction = 0
+      const state = new TestState([box], [floor()])
+      state.restitution = restitution
+      let maxAngularVelocity = 0
+      for (let i = 0; i < 20; i++) {
+        state.advanceByTimestep(0.01)
+        maxAngularVelocity = Math.max(maxAngularVelocity, Math.abs(box.angularVelocity))
+      }
+      assert.ok(maxAngularVelocity < 1e-6, `width ${width}, restitution ${restitution}: angularVelocity ${maxAngularVelocity}`)
+    }
+  }
+})
+
+test('box rotating on the floor is pushed only at the corner moving into it', () => {
+  // left bottom corner moves down into the floor, right bottom corner moves
+  // up; penetration is below the slop, so there is no push-out bias
+  for (const angularVelocity of [2, 10, 30]) {
+    const box = new Body(1).setOrigin(0, 0.0095).setDimension(0.4, 0.02).setVelocity(0, -0.1).setAngularVelocity(angularVelocity).finalize()
+    const energy = () => 0.5 * box.mass * (box.velocity.x ** 2 + box.velocity.y ** 2) + 0.5 * box.inertia * box.angularVelocity ** 2
+    const before = energy()
+    const state = new TestState([box], [floor()])
+    state.restitution = 0
+    const points = collideAndApply(state).flatMap(c => c.collisionPoints)
+    assert.equal(points.length, 2)
+    const [left, right] = points[0].contactPointX < points[1].contactPointX ? points : [points[1], points[0]]
+    const message = `angularVelocity ${angularVelocity}`
+    assert.ok(left.accumulatedImpulse > 0, message)
+    assert.ok(Math.abs(left.getNormalVelocity()) < 1e-9, message)
+    assert.equal(right.accumulatedImpulse, 0, message)
+    assert.ok(right.getNormalVelocity() > 0, message)
+    assert.ok(energy() < before, message)
+  }
 })
 
 test('overlapping fixed bodies in the list of moving bodies do not produce NaN', () => {
