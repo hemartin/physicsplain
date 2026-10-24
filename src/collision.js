@@ -37,23 +37,22 @@ export class Collision {
 
   apply () {
     const collisionCount = this.collisionPoints.length
-    const originalDeltasX = []
-    const originalDeltasY = []
+
+    // restitution is based on the relative velocity before solving
+    const bounces = []
+    for (let j = 0; j < collisionCount; j++) {
+      bounces[j] =
+        Math.min(this.collisionPoints[j].getNormalVelocity(), 0) *
+        this.restitution
+    }
+
+    // sequential impulses: apply impulse of each collision point right away
     let iteration = 0
     let accumulatedImpulse = 0
-    let previousAccumulatedImpulse = Number.MAX_VALUE
     do {
-      if (accumulatedImpulse > 0) {
-        previousAccumulatedImpulse = accumulatedImpulse
-      }
-
       accumulatedImpulse = 0
       for (let j = 0; j < collisionCount; j++) {
         const collisionPoint = this.collisionPoints[j]
-        const v1 = collisionPoint.collidingEntity.velocity
-        const w1 = collisionPoint.collidingEntity.angularVelocity
-        const v2 = collisionPoint.impactedEntity.velocity
-        const w2 = collisionPoint.impactedEntity.angularVelocity
 
         // Vector r1 = Vector.substract(collisionPoint.contactPoint,
         // collisionPoint.collidingEntity.getOrigin())
@@ -67,50 +66,9 @@ export class Collision {
         const r2X = collisionPoint.contactPointX - ieo.x
         const r2Y = collisionPoint.contactPointY - ieo.y
 
-        const normalMass = collisionPoint.getNormalMass()
-
-        // return new Vector(-f * vector.y, f * vector.x)
-
-        // Vector delta = Vector.cross(r1, w1)
-        let deltaX = -w1 * r1Y
-        let deltaY = w1 * r1X
-
-        // Vector t1 = Vector.cross(r2, w2)
-        const t1X = -w2 * r2Y
-        const t1Y = w2 * r2X
-
-        // delta.substract(t1)
-        deltaX -= t1X
-        deltaY -= t1Y
-
-        // delta.substract(v2)
-        deltaX -= v2.x
-        deltaY -= v2.y
-
-        // delta.add(v1)
-        deltaX += v1.x
-        deltaY += v1.y
-
-        if (iteration === 0) {
-          // originalDeltas[j] = delta; // Vector.scale(delta, 0.9f)
-          originalDeltasX[j] = deltaX * this.restitution
-          originalDeltasY[j] = deltaY * this.restitution
-        }
-
         let normalImpulse =
-          (Vector.dot(
-            originalDeltasX[j],
-            originalDeltasY[j],
-            collisionPoint.normalX,
-            collisionPoint.normalY
-          ) +
-            Vector.dot(
-              deltaX,
-              deltaY,
-              collisionPoint.normalX,
-              collisionPoint.normalY
-            )) *
-          normalMass *
+          (bounces[j] + collisionPoint.getNormalVelocity()) *
+          collisionPoint.getNormalMass() *
           -1
 
         // clamp
@@ -153,19 +111,11 @@ export class Collision {
           -collisionPoint.impactedEntity.invertedInertia() *
           Vector.cross(r2X, r2Y, impulseX, impulseY)
         collisionPoint.addTempVelocities(nv1X, nv1Y, nw1, nv2X, nv2Y, nw2)
-      }
-
-      // apply all temp velocites
-      for (let i = 0; i < collisionCount; i++) {
-        this.collisionPoints[i].applyTempVelocities()
+        collisionPoint.applyTempVelocities()
       }
 
       iteration++
-    } while (
-      accumulatedImpulse > 0.001 &&
-      iteration < 50 &&
-      accumulatedImpulse <= previousAccumulatedImpulse
-    )
+    } while (accumulatedImpulse > 0.001 && iteration < 50)
   }
 
   static mergeCollisions (collisions) {
