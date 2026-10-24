@@ -1,5 +1,3 @@
 import neostandard from 'neostandard'
 
-export default neostandard({
-  ignores: ['dist/**']
-})
+export default neostandard()
