@@ -60,7 +60,7 @@ export class Body {
 
   /*
    * Finalizes the construction of body by calculating its inertia, inverted mass,
-   * and the location of its corners.
+   * bounding radius, and the location of its corners.
    */
   finalize () {
     this.inertia =
@@ -68,6 +68,9 @@ export class Body {
         this.dimension.y * this.dimension.y) *
         this.mass) /
       12
+
+    // radius of the circle around origin that contains all corners
+    this.boundingRadius = 0.5 * Vector.length(this.dimension.x, this.dimension.y)
     this.calculateCorners()
     return this
   }
@@ -262,11 +265,6 @@ export class Body {
     return this.mass === bodyInfiniteMass
   }
 
-  // radius of the circle around origin that contains all corners
-  boundingRadius () {
-    return 0.5 * Vector.length(this.dimension.x, this.dimension.y)
-  }
-
   /**
    * @returns outward unit normal of the edge from corner edge to the next
    * corner (0 top, 1 left, 2 bottom, 3 right for an unrotated body)
@@ -307,7 +305,7 @@ export class Body {
     )
     if (
       distance >
-      this.boundingRadius() + collidingBody.boundingRadius() + boundingMargin
+      this.boundingRadius + collidingBody.boundingRadius + boundingMargin
     ) {
       return null
     }

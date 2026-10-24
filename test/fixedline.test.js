@@ -69,3 +69,16 @@ test('corner just reaching below the line collides', () => {
   assert.notEqual(line().collide(diamond(0.5, diamondRadius - 1e-6), 0.01, 1), null)
   assert.equal(line().collide(diamond(0.5, diamondRadius + 1e-3), 0.01, 1), null)
 })
+
+test('corner just past the end of the line collides, body beyond the end does not', () => {
+  // line() runs from (0, 0) to (1, 0); bottom right corner 0.001 past the start
+  assert.notEqual(line().collide(new Body(2).setOrigin(-0.049, 0.04).finalize(), 0.01, 1), null)
+  assert.equal(line().collide(new Body(2).setOrigin(-0.051, 0.04).finalize(), 0.01, 1), null)
+  assert.equal(line().collide(new Body(2).setOrigin(1.2, -0.01).finalize(), 0.01, 1), null)
+})
+
+test('fast body crossing the line far from its rectangle still collides', () => {
+  // origin 0.3 behind the line after moving 0.4 in one step
+  const body = new Body(2).setOrigin(0.5, -0.3).setVelocity(0, -40).finalize()
+  assert.notEqual(line().collide(body, 0.01, 1), null)
+})

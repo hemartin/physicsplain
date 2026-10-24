@@ -150,8 +150,8 @@ test('body without finalize() turns like a finalized body with default values', 
   assert.deepEqual(body.cornerY, finalized.cornerY)
 })
 
-test('boundingRadius is half the diagonal', () => {
-  assert.equal(new Body(1).setDimension(0.6, 0.8).finalize().boundingRadius(), 0.5)
+test('finalize computes the bounding radius, half the diagonal', () => {
+  assert.equal(new Body(1).setDimension(0.6, 0.8).finalize().boundingRadius, 0.5)
 })
 
 test('edgeNormal points out of the body', () => {

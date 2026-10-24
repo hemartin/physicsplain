@@ -21,7 +21,7 @@ export class FixedCircle extends FixedEntity {
       collidingBody.origin.x - this.origin.x,
       collidingBody.origin.y - this.origin.y
     )
-    if (distance > this.radius + collidingBody.boundingRadius() + boundingMargin) {
+    if (distance > this.radius + collidingBody.boundingRadius + boundingMargin) {
       return null
     }
 

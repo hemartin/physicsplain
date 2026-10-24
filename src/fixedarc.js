@@ -29,7 +29,7 @@ export class FixedArc extends FixedEntity {
       collidingBody.origin.x - this.origin.x,
       collidingBody.origin.y - this.origin.y
     )
-    const boundingRadius = collidingBody.boundingRadius() + boundingMargin
+    const boundingRadius = collidingBody.boundingRadius + boundingMargin
     if (
       distance > this.radius + this.width + boundingRadius ||
       distance < this.radius - boundingRadius
