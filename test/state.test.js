@@ -88,3 +88,21 @@ test('collisions merge into islands of connected bodies', () => {
   const islands = state.collide(0.01).map(c => new Set(c.collisionPoints.flatMap(cp => [cp.collidingEntity, cp.impactedEntity])).size)
   assert.deepEqual(islands.sort((a, b) => a - b), [2, 3])
 })
+
+test('collide gets the moving bodies once and asks collideBodies once per pair', () => {
+  const state = new TestState(
+    [new Body(1).finalize(), new Body(2).setOrigin(1, 0).finalize(), new Body(3).setOrigin(2, 0).finalize()],
+    [new FixedBody(4).setOrigin(0, -1).finalize()]
+  )
+  const getMovingBodies = state.getMovingBodies
+  let generators = 0
+  state.getMovingBodies = function * () {
+    generators++
+    yield * getMovingBodies.call(this)
+  }
+  const pairs = []
+  state.collideBodies = (body1, body2) => pairs.push([body1.id, body2.id].sort().join('-'))
+  state.collide(0.01)
+  assert.equal(generators, 1)
+  assert.deepEqual(pairs.sort(), ['1-2', '1-3', '1-4', '2-3', '2-4', '3-4'])
+})

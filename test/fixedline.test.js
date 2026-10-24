@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { Body, FixedLine, Vector } from '../src/physicsplain.js'
-import { TestState } from './helpers.js'
+import { TestState, diamond, diamondRadius } from './helpers.js'
 
 const line = () => new FixedLine(1, new Vector(0, 0), new Vector(1, 0))
 
@@ -63,4 +63,9 @@ test('body far below the line does not collide', () => {
 test('overlaps is falsy for a body far from the line', () => {
   const body = new Body(2).setOrigin(5, 5).finalize()
   assert.ok(!line().overlaps(body))
+})
+
+test('corner just reaching below the line collides', () => {
+  assert.notEqual(line().collide(diamond(0.5, diamondRadius - 1e-6), 0.01, 1), null)
+  assert.equal(line().collide(diamond(0.5, diamondRadius + 1e-3), 0.01, 1), null)
 })
