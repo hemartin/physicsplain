@@ -31,6 +31,16 @@ test('rotated narrow box bounces elastically without gaining energy', () => {
   assert.ok(energy < 0.5 * 1.01, `energy ${energy}`)
 })
 
+test('wide box resting on the floor does not tilt', () => {
+  const box = new Body(1).setOrigin(0, 0.01).setDimension(0.4, 0.02).setForce(0, -2).finalize()
+  const state = new TestState([box], [floor()])
+  state.restitution = 0
+  for (let i = 0; i < 1000; i++) {
+    state.advanceByTimestep(0.01)
+  }
+  assert.ok(Math.abs(box.angle) < 1e-4, `angle ${box.angle}`)
+})
+
 test('box stacked on another box does not sink into it', { todo: 'issue #2' }, () => {
   const lower = new Body(1).setOrigin(0, 0).finalize()
   const upper = new Body(2).setOrigin(0, 0.09).setVelocity(0, -1).finalize()

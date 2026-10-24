@@ -115,7 +115,7 @@ export class Collision {
       }
 
       iteration++
-    } while (accumulatedImpulse > 0.001 && iteration < 50)
+    } while (accumulatedImpulse > 0.000001 && iteration < 50)
   }
 
   static mergeCollisions (collisions) {
