@@ -1,4 +1,3 @@
-import { boundingMargin } from './body.js'
 import { Collision } from './collision.js'
 import { CollisionPoint } from './collisionpoint.js'
 import { FixedEntity } from './fixedentity.js'
@@ -41,16 +40,6 @@ export class FixedLine extends FixedEntity {
     const originY = Vector.dot(origin.x - this.start.x, origin.y - this.start.y, n.x, n.y)
     const previousOriginY = originY - Vector.dot(velocity.x, velocity.y, n.x, n.y) * timestep
     if (originY < 0 && previousOriginY < 0) {
-      return null
-    }
-
-    // ignore bodies too far in front of this line or beyond its ends to
-    // touch it, in this line's frame: a colliding corner is below the line
-    // and between its ends, and within the bounding radius of origin
-    const radius = collidingBody.boundingRadius + boundingMargin
-    const originX =
-      (origin.x - this.start.x) * this.cos - (origin.y - this.start.y) * this.sin
-    if (originY > radius || originX < -radius || originX > this.length + radius) {
       return null
     }
 
