@@ -12,6 +12,75 @@ test('narrow box bounces off the floor elastically', () => {
   assert.ok(Math.abs(box.velocity.y - 1) < 0.1, `vy ${box.velocity.y}`)
 })
 
+test('aligned boxes get the normal of the face they touch, from every side', () => {
+  for (const [dx, dy] of [[0, 1], [-1, 0], [0, -1], [1, 0]]) {
+    const impacted = new Body(1).finalize()
+    const colliding = new Body(2).setOrigin(0.09 * dx, 0.09 * dy).setVelocity(-dx, -dy).finalize()
+    const collisions = collideAndApply(new TestState([impacted, colliding]))
+    const points = collisions.flatMap(c => c.collisionPoints)
+    assert.equal(points.length, 2, `side (${dx}, ${dy})`)
+    for (const p of points) {
+      assert.ok(Math.abs(p.normalX - dx) < 1e-9 && Math.abs(p.normalY - dy) < 1e-9,
+        `side (${dx}, ${dy}): normal (${p.normalX}, ${p.normalY})`)
+      assert.ok(Math.abs(p.separation - 0.01) < 1e-9, `side (${dx}, ${dy}): separation ${p.separation}`)
+    }
+    const v = colliding.velocity.x * dx + colliding.velocity.y * dy
+    assert.ok(v > -0.5, `side (${dx}, ${dy}): velocity towards impacted box ${v}`)
+  }
+})
+
+test('rotated box hitting the floor gets the floor normal', () => {
+  for (const angle of [0, 0.3, -0.3, 0.7]) {
+    const box = new Body(1).setAngle(angle).finalize()
+    // lowest corner 0.005 below the floor's top edge
+    box.setOrigin(0.3, -Math.min(...box.cornerY) - 0.005).setVelocity(0, -1).finalize()
+    const collisions = collideAndApply(new TestState([box], [floor()]))
+    const points = collisions.flatMap(c => c.collisionPoints)
+    assert.ok(points.length > 0, `angle ${angle}`)
+    for (const p of points) {
+      assert.ok(Math.abs(p.normalX) < 1e-9 && Math.abs(p.normalY - 1) < 1e-9,
+        `angle ${angle}: normal (${p.normalX}, ${p.normalY})`)
+    }
+    assert.ok(box.velocity.y > 0, `angle ${angle}: vy ${box.velocity.y}`)
+  }
+})
+
+test('stacked box drifting sideways keeps the top normal', () => {
+  // corners of upper box sit exactly on the side edges of lower box
+  const lower = new Body(1).finalize()
+  const upper = new Body(2).setOrigin(0, 0.099).setVelocity(0.001, -0.01).finalize()
+  const points = new TestState([lower, upper]).collide(0.01).flatMap(c => c.collisionPoints)
+  assert.equal(points.length, 2)
+  for (const p of points) {
+    assert.ok(Math.abs(p.normalX) < 1e-9 && Math.abs(p.normalY - 1) < 1e-9, `normal (${p.normalX}, ${p.normalY})`)
+  }
+})
+
+test('separation belongs to the edge of the normal', () => {
+  // corner crosses the left edge 0.02 deep, 0.005 below the top edge
+  const impacted = new FixedBody(1).finalize()
+  const colliding = new Body(2).setOrigin(-0.08, 0.095).setVelocity(3, 0).finalize()
+  const points = new TestState([colliding], [impacted]).collide(0.01).flatMap(c => c.collisionPoints)
+  assert.equal(points.length, 2)
+  for (const p of points) {
+    assert.ok(Math.abs(Math.abs(p.normalX) - 1) < 1e-9 && Math.abs(p.normalY) < 1e-9, `normal (${p.normalX}, ${p.normalY})`)
+    assert.ok(Math.abs(p.separation - 0.02) < 1e-9, `separation ${p.separation}`)
+  }
+})
+
+for (const [name, offset] of [['aligned', 0], ['offset', 0.01]]) {
+  test(`${name} stack of three boxes keeps its height under gravity`, () => {
+    const boxes = [0, 1, 2].map(i => new Body(i + 1).setOrigin(offset * i, 0.05 + 0.1 * i).setForce(0, -2).finalize())
+    const state = new TestState(boxes, [floor()])
+    state.restitution = 0
+    for (let i = 0; i < 500; i++) {
+      state.advanceByTimestep(0.01)
+    }
+    const height = Math.max(...boxes[2].cornerY)
+    assert.ok(height > 0.29, `stack height ${height}`)
+  })
+}
+
 test('narrow box bounce follows restitution', () => {
   for (const restitution of [0, 0.5]) {
     const box = new Body(1).setOrigin(0, 0.199).setDimension(0.02, 0.4).setVelocity(0, -1).finalize()
@@ -41,7 +110,7 @@ test('wide box resting on the floor does not tilt', () => {
   assert.ok(Math.abs(box.angle) < 1e-4, `angle ${box.angle}`)
 })
 
-test('box stacked on another box does not sink into it', { todo: 'issue #2' }, () => {
+test('box stacked on another box does not sink into it', () => {
   const lower = new Body(1).setOrigin(0, 0).finalize()
   const upper = new Body(2).setOrigin(0, 0.09).setVelocity(0, -1).finalize()
   collideAndApply(new TestState([lower, upper]))

@@ -365,46 +365,76 @@ export class Body {
       relativeMoveX = tx1
       relativeMoveY = ty1
 
-      // get edge closest to point
+      // extent of colliding body in this body's frame, so that a point
+      // sitting on a side edge (e.g. stacked aligned boxes) does not make
+      // that side edge the closest edge
+      let minX = Infinity
+      let maxX = -Infinity
+      let minY = Infinity
+      let maxY = -Infinity
+      for (let i = 0; i < 4; i++) {
+        const cx = collidingBody.cornerX[i] - this.origin.x
+        const cy = collidingBody.cornerY[i] - this.origin.y
+        minX = Math.min(minX, cx * cos - cy * sin)
+        maxX = Math.max(maxX, cx * cos - cy * sin)
+        minY = Math.min(minY, cx * sin + cy * cos)
+        maxY = Math.max(maxY, cx * sin + cy * cos)
+      }
+
+      // get edge closest to point, i.e. edge of least penetration of
+      // colliding body
       // top edge
       let separation = halfwidth - y
+      let penetration = halfwidth - minY
       let minSeparation = separation
+      let minPenetration = penetration
       let maxEdge = 0
       let minEdge = 0
-      if (separation < -relativeMoveY) {
+      let crossSeparation = Infinity
+      if (separation > eps && separation < -relativeMoveY) {
         maxEdge = 1
+        crossSeparation = separation
       }
 
       // left edge
       separation = halflength + x
-      if (separation < relativeMoveX) {
+      penetration = halflength + maxX
+      if (separation > eps && separation < relativeMoveX) {
         maxEdge |= 2
+        crossSeparation = Math.min(crossSeparation, separation)
       }
 
-      if (separation < minSeparation) {
+      if (penetration < minPenetration) {
         minSeparation = separation
+        minPenetration = penetration
         minEdge = 1
       }
 
       // bottom edge
       separation = halfwidth + y
-      if (separation < relativeMoveY) {
+      penetration = halfwidth + maxY
+      if (separation > eps && separation < relativeMoveY) {
         maxEdge |= 4
+        crossSeparation = Math.min(crossSeparation, separation)
       }
 
-      if (separation < minSeparation) {
+      if (penetration < minPenetration) {
         minSeparation = separation
+        minPenetration = penetration
         minEdge = 2
       }
 
       // right edge
       separation = halflength - x
-      if (separation < -relativeMoveX) {
+      penetration = halflength - minX
+      if (separation > eps && separation < -relativeMoveX) {
         maxEdge |= 8
+        crossSeparation = Math.min(crossSeparation, separation)
       }
 
-      if (separation < minSeparation) {
+      if (penetration < minPenetration) {
         minSeparation = separation
+        minPenetration = penetration
         minEdge = 3
       }
 
@@ -412,6 +442,7 @@ export class Body {
       let normalX
       let normalY
       if (maxEdge > 0) {
+        minSeparation = crossSeparation
         let count = 0
         // normal = new Vector(0, 0)
         normalX = 0
