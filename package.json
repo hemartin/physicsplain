@@ -1,0 +1,36 @@
+{
+  "name": "physicsplain",
+  "version": "0.1.0",
+  "description": "Lightweight 2D rigid-body physics for small browser games and animations.",
+  "keywords": [
+    "physics",
+    "2d",
+    "game",
+    "rigid-body"
+  ],
+  "homepage": "https://hemartin.github.io/physicsplain/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hemartin/physicsplain.git"
+  },
+  "license": "MIT",
+  "author": "Martin Hentschel",
+  "type": "module",
+  "exports": "./src/physicsplain.js",
+  "files": [
+    "src"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "test": "node --test \"test/**/*.test.js\"",
+    "test:coverage": "node --test --experimental-test-coverage --test-coverage-include=\"src/**\" \"test/**/*.test.js\""
+  },
+  "devDependencies": {
+    "eslint": "^10.13.0",
+    "neostandard": "^0.14.1"
+  }
+}
