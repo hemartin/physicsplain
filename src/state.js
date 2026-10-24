@@ -43,7 +43,8 @@ export class State {
    * physics consistent even if application is replayed at different
    * frames per second later.
    *
-   * @param {Number} fixedTimestep fixed timestep
+   * @param {Number} fixedTimestep fixed timestep in seconds (0.01), the
+   * same timestep used to integrate bodies
    */
   postStep (fixedTimestep) {}
 
@@ -95,7 +96,7 @@ export class State {
       timestep -= fixedTimestep
 
       // call callback, lets application update physics (e.g. targets)
-      this.postStep(fixedTimestep)
+      this.postStep(fixedTimestep / 1000)
     }
     this.previous = now
     this.remainder = timestep
