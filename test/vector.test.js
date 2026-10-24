@@ -91,10 +91,10 @@ test('static length returns the length of (x, y)', () => {
   assert.equal(Vector.length(-3, -4), 5)
 })
 
-test('static angle returns the angle of (x, y) in [0, 2PI)', () => {
+test('static angle returns the angle of (x, y) in (-PI, PI]', () => {
   assert.equal(Vector.angle(1, 0), 0)
   assert.equal(Vector.angle(0, 1), Math.PI / 2)
   assert.equal(Vector.angle(-1, 0), Math.PI)
-  assert.equal(Vector.angle(0, -1), 3 * Math.PI / 2)
-  assertClose(Vector.angle(1, -1), 7 * Math.PI / 4)
+  assert.equal(Vector.angle(0, -1), -Math.PI / 2)
+  assertClose(Vector.angle(1, -1), -Math.PI / 4)
 })

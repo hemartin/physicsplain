@@ -82,11 +82,8 @@ export class Vector {
     return Math.sqrt(x * x + y * y)
   }
 
+  // angle of (x, y) in (-PI, PI], like the angle of a body
   static angle (x, y) {
-    let angle = Math.atan2(y, x)
-    if (angle < 0) {
-      angle += 2 * Math.PI
-    }
-    return angle
+    return Math.atan2(y, x)
   }
 }
