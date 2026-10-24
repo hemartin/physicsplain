@@ -30,6 +30,17 @@ export class FixedLine {
   }
 
   collide (collidingBody, timestep, restitution) {
+    // ignore bodies behind this line, unless their origin crossed the line
+    // during the last step (fast bodies)
+    const origin = collidingBody.origin
+    const velocity = collidingBody.velocity
+    const n = this.normal
+    const originY = Vector.dot(origin.x - this.start.x, origin.y - this.start.y, n.x, n.y)
+    const previousOriginY = originY - Vector.dot(velocity.x, velocity.y, n.x, n.y) * timestep
+    if (originY < 0 && previousOriginY < 0) {
+      return null
+    }
+
     let collision = null
     for (let corner = 0; corner < 4; corner++) {
       // Vector vertex = body.vertex(corner);
