@@ -97,6 +97,12 @@ test('angle wraps to [-PI, PI]', () => {
   assert.ok(Math.abs(body.angle) <= Math.PI, `angle ${body.angle}`)
 })
 
+test('angle wraps after more than one turn in a single step', () => {
+  const body = new Body(1).setAngularVelocity(100).finalize()
+  body.advance(0.1)
+  assert.ok(Math.abs(body.angle - (10 - 4 * Math.PI)) < 1e-12, `angle ${body.angle}`)
+})
+
 test('target-angle steering turns the short way', () => {
   // target 3PI/2 points the same way as -PI/2, which is 0.01 rad clockwise
   const body = new Body(1).setAngle(-Math.PI / 2 + 0.01).finalize()

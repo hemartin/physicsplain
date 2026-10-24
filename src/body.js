@@ -4,6 +4,9 @@ import { Vector } from './vector.js'
 
 export const bodyInfiniteMass = -1
 
+// wraps angle to [-PI, PI)
+const wrapAngle = (angle) => angle - 2 * Math.PI * Math.round(angle / (2 * Math.PI))
+
 /**
  * Rigid body.
  *
@@ -139,12 +142,7 @@ export class Body {
     this.origin.x += this.velocity.x * timestep
     this.origin.y += this.velocity.y * timestep
 
-    this.angle += this.angularVelocity * timestep
-    if (this.angle > Math.PI) {
-      this.angle -= 2 * Math.PI
-    } else if (this.angle < -Math.PI) {
-      this.angle += 2 * Math.PI
-    }
+    this.angle = wrapAngle(this.angle + this.angularVelocity * timestep)
 
     this.calculateCorners()
   }
@@ -174,8 +172,7 @@ export class Body {
 
     if (this.targetAngleSet) {
       // calculate angular force, turn the short way round
-      let forceA = this.targetAngle - this.angle
-      forceA -= 2 * Math.PI * Math.round(forceA / (2 * Math.PI))
+      let forceA = wrapAngle(this.targetAngle - this.angle)
       if (forceA !== 0) {
         forceA = this.angleThrust * Math.sign(forceA)
         this.angularVelocity += forceA * timestep * this.invertedInertia()
