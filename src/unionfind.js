@@ -16,15 +16,16 @@ class UnionFindNode {
 
 export class UnionFind {
   constructor () {
-    this.nodes = []
+    // keyed by any value, e.g. an entity object
+    this.nodes = new Map()
   }
 
   findNode (id) {
-    if (this.nodes[id] === undefined) {
-      this.nodes[id] = new UnionFindNode(id)
-      return this.nodes[id]
+    if (!this.nodes.has(id)) {
+      this.nodes.set(id, new UnionFindNode(id))
+      return this.nodes.get(id)
     } else {
-      let root = this.nodes[id]
+      let root = this.nodes.get(id)
       while (root.id !== root.parent.id) {
         root = root.parent
       }

@@ -177,29 +177,24 @@ export class Collision {
     // find connected components using union-find algorithm
     const unionFind = new UnionFind()
 
-    // build connected components
+    // build connected components (keyed by entity, ids may be missing or
+    // duplicate)
     for (const collision of collisions) {
       const cp = collision.collisionPoints[0]
-      unionFind.union(cp.collidingEntity.id, cp.impactedEntity.id)
+      unionFind.union(cp.collidingEntity, cp.impactedEntity)
     }
 
     // merge collision points of each component into a single collision
-    const mergedCollisionMap = []
+    const mergedCollisionMap = new Map()
     for (const collision of collisions) {
       const cp = collision.collisionPoints[0]
-      const compId = unionFind.find(cp.collidingEntity.id)
-      if (mergedCollisionMap[compId] === undefined) {
-        mergedCollisionMap[compId] = collision
+      const comp = unionFind.find(cp.collidingEntity)
+      if (!mergedCollisionMap.has(comp)) {
+        mergedCollisionMap.set(comp, collision)
       } else {
-        mergedCollisionMap[compId].merge(collision)
+        mergedCollisionMap.get(comp).merge(collision)
       }
     }
-
-    // un-sparse map
-    const mergedCollisions = []
-    for (const compId in mergedCollisionMap) {
-      mergedCollisions.push(mergedCollisionMap[compId])
-    }
-    return mergedCollisions
+    return [...mergedCollisionMap.values()]
   }
 }
