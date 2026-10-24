@@ -144,16 +144,14 @@ export class State {
   collide (timestep) {
     const collisions = []
 
-    // collide movable bodies with each other
-    const lookedAt = new Set()
-    for (const movingBody1 of this.getMovingBodies()) {
-      // remember id of movingBody1
-      lookedAt.add(movingBody1.id)
-
-      // collide bodies if id not in set
-      for (const movingBody2 of this.getMovingBodies()) {
+    // collide each pair of movable bodies once (by index, ids may be missing
+    // or duplicate)
+    const movingBodies = [...this.getMovingBodies()]
+    for (let i = 0; i < movingBodies.length; i++) {
+      const movingBody1 = movingBodies[i]
+      for (let j = i + 1; j < movingBodies.length; j++) {
+        const movingBody2 = movingBodies[j]
         if (
-          !lookedAt.has(movingBody2.id) &&
           this.collideBodies(movingBody1, movingBody2) &&
           this.collideBodies(movingBody2, movingBody1)
         ) {

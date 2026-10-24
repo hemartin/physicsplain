@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { Body } from '../src/physicsplain.js'
+import { Body, FixedBody } from '../src/physicsplain.js'
 import { TestState } from './helpers.js'
 
 test('advance runs fixed 10 ms steps and keeps the remainder', () => {
@@ -48,10 +48,43 @@ test('postStep receives the timestep in seconds', () => {
   assert.ok(timesteps.every(t => t === 0.01), `timesteps ${timesteps}`)
 })
 
-test('bodies without id collide', { todo: 'issue #12' }, () => {
+test('bodies without id collide', () => {
   const state = new TestState([
     new Body().setOrigin(0, 0).finalize(),
     new Body().setOrigin(0.05, 0.05).finalize()
   ])
   assert.equal(state.collide(0.01).length, 1)
+})
+
+test('bodies with duplicate ids collide', () => {
+  const state = new TestState([
+    new Body(1).setOrigin(0, 0).finalize(),
+    new Body(1).setOrigin(0.05, 0.05).finalize()
+  ])
+  assert.equal(state.collide(0.01).length, 1)
+})
+
+test('fixed body sharing an id with a moving body does not merge islands', () => {
+  // body 1 rests on floor 2 on the left, body 2 rests on floor 3 on the right
+  const state = new TestState([
+    new Body(1).setOrigin(-0.5, 0.05).finalize(),
+    new Body(2).setOrigin(0.5, 0.05).finalize()
+  ], [
+    new FixedBody(2).setOrigin(-0.5, -0.5).setDimension(0.5, 1).finalize(),
+    new FixedBody(3).setOrigin(0.5, -0.5).setDimension(0.5, 1).finalize()
+  ])
+  assert.equal(state.collide(0.01).length, 2)
+})
+
+test('collisions merge into islands of connected bodies', () => {
+  // a-b and b-c overlap, d-e overlap elsewhere; no ids
+  const state = new TestState([
+    new Body().setOrigin(0, 0).finalize(),
+    new Body().setOrigin(0.09, 0.02).finalize(),
+    new Body().setOrigin(0.18, 0.04).finalize(),
+    new Body().setOrigin(1, 0).finalize(),
+    new Body().setOrigin(1.09, 0.02).finalize()
+  ])
+  const islands = state.collide(0.01).map(c => new Set(c.collisionPoints.flatMap(cp => [cp.collidingEntity, cp.impactedEntity])).size)
+  assert.deepEqual(islands.sort((a, b) => a - b), [2, 3])
 })
