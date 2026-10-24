@@ -54,9 +54,18 @@ export class State {
    * only be updated after all steps have finished to avoid
    * unnecessary computation.
    *
+   * Physics runs in fixed steps of 10 ms, so the current time usually lies
+   * between two steps. Draw bodies at Body.interpolatedOrigin(alpha),
+   * interpolatedAngle(alpha) or interpolatedCorners(alpha) to avoid
+   * judder, e.g. at 60 Hz frames alternate between 1 and 2 steps. This
+   * draws bodies up to one step (10 ms) behind physics.
+   *
    * @param {Number} now current timestamp
+   * @param {Number} alpha time since the last step as a fraction of a
+   * step, from 0 (draw the state before the last step) to 1 (draw the
+   * current state)
    */
-  postAdvance (now) {}
+  postAdvance (now, alpha) {}
 
   /**
    * Evaluates whether two bodies should collide. Order of bodies does not
@@ -101,7 +110,7 @@ export class State {
     this.remainder = timestep
 
     // call callback, lets application update graphics
-    this.postAdvance(now)
+    this.postAdvance(now, this.remainder / fixedTimestep)
   }
 
   /**

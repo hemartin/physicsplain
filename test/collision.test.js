@@ -235,3 +235,47 @@ test('overlapping fixed bodies in the list of moving bodies do not produce NaN',
     assert.deepEqual([body.velocity.x, body.velocity.y, body.angularVelocity], [0, 0, 0])
   }
 })
+
+test('mirrored boxes hitting corner against corner bounce off mirrored', () => {
+  // each box has one corner inside the other, so the two points are between
+  // the same boxes in swapped roles; solving them one after the other would
+  // push the box of the first point harder
+  for (const angle of [0.2, 0.4, 0.6]) {
+    const left = new Body(1).setOrigin(-0.055, 0).setAngle(angle).setVelocity(1, 0).finalize()
+    const right = new Body(2).setOrigin(0.055, 0).setAngle(-angle).setVelocity(-1, 0).finalize()
+    const points = collideAndApply(new TestState([left, right])).flatMap(c => c.collisionPoints)
+    assert.equal(points.length, 2, `angle ${angle}`)
+    assert.notEqual(points[0].collidingEntity, points[1].collidingEntity, `angle ${angle}`)
+    assert.equal(left.velocity.x, -right.velocity.x, `angle ${angle}`)
+    assert.equal(left.velocity.y, right.velocity.y, `angle ${angle}`)
+    assert.equal(left.angularVelocity, -right.angularVelocity, `angle ${angle}`)
+  }
+})
+
+test('mirrored scene stays mirrored', () => {
+  // boxes dropped onto two mirrored ramps, as in demo example 2
+  const boxes = [-0.7, -0.5, -0.3, 0.3, 0.5, 0.7].map((x, i) =>
+    new Body(i).setOrigin(x, 0.5).setForce(0, -2).finalize())
+  for (const box of boxes) {
+    box.lateralFriction = 0.5
+    box.rotationalFriction = 2
+  }
+  const ramps = [
+    new FixedBody(6).setOrigin(-0.7, -0.5).setAngle(-0.1 * Math.PI).setDimension(1, 0.5).finalize(),
+    new FixedBody(7).setOrigin(0.7, -0.5).setAngle(0.1 * Math.PI).setDimension(1, 0.5).finalize()
+  ]
+  const state = new TestState(boxes, ramps)
+  for (let step = 1; step <= 500; step++) {
+    state.advanceByTimestep(0.01)
+    for (let i = 0; i < 3; i++) {
+      const box = boxes[i]
+      const mirrored = boxes[5 - i]
+      const asymmetry = Math.max(
+        Math.abs(box.origin.x + mirrored.origin.x),
+        Math.abs(box.origin.y - mirrored.origin.y),
+        Math.abs(Math.sin(box.angle + mirrored.angle))
+      )
+      assert.ok(asymmetry < 1e-9, `step ${step}, boxes ${i} and ${5 - i}: asymmetry ${asymmetry}`)
+    }
+  }
+})

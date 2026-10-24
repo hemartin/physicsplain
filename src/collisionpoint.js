@@ -91,25 +91,28 @@ export class CollisionPoint {
 
   /**
    * @returns change of the normal velocity at this point per unit impulse
-   * along the (same) normal at the other point, between the same entities
+   * at the other point; both points are between the same two entities, in
+   * the same or in swapped roles
    */
   getCoupling (other) {
-    // Vector r1 = Vector.substract(contactPoint, collidingEntity.getOrigin())
-    const ceo = this.collidingEntity.origin
-    const rn1 = Vector.cross(this.contactPointX - ceo.x, this.contactPointY - ceo.y, this.normalX, this.normalY)
-    const otherRn1 = Vector.cross(other.contactPointX - ceo.x, other.contactPointY - ceo.y, this.normalX, this.normalY)
+    const normalDot = Vector.dot(this.normalX, this.normalY, other.normalX, other.normalY)
+    let coupling = 0
+    for (const entity of [this.collidingEntity, this.impactedEntity]) {
+      // an impulse pushes the colliding entity along the normal and the
+      // impacted entity against it
+      const sign = entity === this.collidingEntity ? 1 : -1
+      const otherSign = entity === other.collidingEntity ? 1 : -1
 
-    // Vector r2 = Vector.substract(contactPoint, impactedEntity.getOrigin())
-    const ieo = this.impactedEntity.origin
-    const rn2 = Vector.cross(this.contactPointX - ieo.x, this.contactPointY - ieo.y, this.normalX, this.normalY)
-    const otherRn2 = Vector.cross(other.contactPointX - ieo.x, other.contactPointY - ieo.y, this.normalX, this.normalY)
+      // Vector r = Vector.substract(contactPoint, entity.getOrigin())
+      const o = entity.origin
+      const rn = Vector.cross(this.contactPointX - o.x, this.contactPointY - o.y, this.normalX, this.normalY)
+      const otherRn = Vector.cross(other.contactPointX - o.x, other.contactPointY - o.y, other.normalX, other.normalY)
 
-    return (
-      this.collidingEntity.invertedMass() +
-      this.impactedEntity.invertedMass() +
-      rn1 * otherRn1 * this.collidingEntity.invertedInertia() +
-      rn2 * otherRn2 * this.impactedEntity.invertedInertia()
-    )
+      coupling +=
+        sign * otherSign *
+        (entity.invertedMass() * normalDot + entity.invertedInertia() * rn * otherRn)
+    }
+    return coupling
   }
 
   /**

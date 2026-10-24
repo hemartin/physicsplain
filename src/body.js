@@ -32,6 +32,11 @@ export class Body {
     this.velocity = new Vector(0, 0)
     this.angularVelocity = 0
 
+    // origin and angle before the last step, to draw bodies between the
+    // last two steps (see interpolatedOrigin())
+    this.previousOrigin = new Vector(0, 0)
+    this.previousAngle = 0
+
     this.lateralFriction = 1
     this.rotationalFriction = 1
 
@@ -75,14 +80,18 @@ export class Body {
     return this
   }
 
+  // also moves the previous origin, so the body is not drawn moving there
   setOrigin (x, y) {
     this.origin.x = x
     this.origin.y = y
+    this.previousOrigin.set(this.origin)
     return this
   }
 
+  // also sets the previous angle, so the body is not drawn turning there
   setAngle (a) {
     this.angle = wrapAngle(a)
+    this.previousAngle = this.angle
     return this
   }
 
@@ -151,6 +160,9 @@ export class Body {
   }
 
   advance (timestep) {
+    this.previousOrigin.set(this.origin)
+    this.previousAngle = this.angle
+
     // origin.add(Vector.scale(velocity, timestep))
     this.origin.x += this.velocity.x * timestep
     this.origin.y += this.velocity.y * timestep
@@ -158,6 +170,61 @@ export class Body {
     this.angle = wrapAngle(this.angle + this.angularVelocity * timestep)
 
     this.calculateCorners()
+  }
+
+  /**
+   * Origin for drawing between the last two steps, to avoid judder when
+   * the screen refreshes at a different rate than physics steps.
+   *
+   * @param {Number} alpha 0 for the origin before the last step, 1 for the
+   * current origin, as passed to State.postAdvance()
+   * @returns {Vector} interpolated origin
+   */
+  interpolatedOrigin (alpha) {
+    return new Vector(
+      this.previousOrigin.x + (this.origin.x - this.previousOrigin.x) * alpha,
+      this.previousOrigin.y + (this.origin.y - this.previousOrigin.y) * alpha
+    )
+  }
+
+  /**
+   * Angle for drawing between the last two steps, turning the short way
+   * round (see interpolatedOrigin()).
+   *
+   * @param {Number} alpha 0 for the angle before the last step, 1 for the
+   * current angle
+   * @returns {Number} interpolated angle, may be outside (-PI, PI]
+   */
+  interpolatedAngle (alpha) {
+    return this.previousAngle + wrapAngle(this.angle - this.previousAngle) * alpha
+  }
+
+  /**
+   * Corners for drawing between the last two steps (see
+   * interpolatedOrigin()).
+   *
+   * @param {Number} alpha 0 for the corners before the last step, 1 for
+   * the current corners
+   * @returns {Object} object with arrays cornerX and cornerY, like the
+   * properties of this body
+   */
+  interpolatedCorners (alpha) {
+    const origin = this.interpolatedOrigin(alpha)
+
+    // rotate the current corners around the current origin back by the
+    // part of the last turn not yet drawn
+    const turn = this.interpolatedAngle(alpha) - this.angle
+    const cos = Math.cos(turn)
+    const sin = Math.sin(turn)
+    const cornerX = []
+    const cornerY = []
+    for (let i = 0; i < 4; i++) {
+      const x = this.cornerX[i] - this.origin.x
+      const y = this.cornerY[i] - this.origin.y
+      cornerX[i] = origin.x + x * cos - y * sin
+      cornerY[i] = origin.y + x * sin + y * cos
+    }
+    return { cornerX, cornerY }
   }
 
   applyForces (timestep) {
