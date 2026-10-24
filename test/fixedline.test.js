@@ -45,7 +45,14 @@ test('body crossing the line collides', () => {
 
 test('overlaps reports a body crossing the line', () => {
   const body = new Body(2).setOrigin(0.5, 0).finalize()
-  assert.equal(line().overlaps(body).overlaps, true)
+  assert.equal(line().overlaps(body), true)
+})
+
+test('overlapInfo reports on which side of the line a body is', () => {
+  const crossing = new Body(2).setOrigin(0.5, 0).finalize()
+  assert.deepEqual(line().overlapInfo(crossing), { leftOf: true, rightOf: true, overlaps: true })
+  const above = new Body(2).setOrigin(0.5, 0.5).finalize()
+  assert.deepEqual(line().overlapInfo(above), { leftOf: true, rightOf: false, overlaps: false })
 })
 
 test('body far below the line does not collide', () => {
@@ -53,7 +60,7 @@ test('body far below the line does not collide', () => {
   assert.equal(line().collide(body, 0.01, 1), null)
 })
 
-test('overlaps is falsy for a body far from the line', { todo: 'issue #11' }, () => {
+test('overlaps is falsy for a body far from the line', () => {
   const body = new Body(2).setOrigin(5, 5).finalize()
   assert.ok(!line().overlaps(body))
 })
