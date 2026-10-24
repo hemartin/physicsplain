@@ -40,14 +40,15 @@ export class Collision {
 
     // target velocity along normal: bounce based on the relative velocity
     // before solving, or push apart penetrating entities (Baumgarte), but
-    // not both to avoid adding energy
+    // not both to avoid adding energy; correct at most 0.005 of penetration
+    // to limit the push from deep or badly estimated contacts
     const targets = []
     for (let j = 0; j < collisionCount; j++) {
       const collisionPoint = this.collisionPoints[j]
       const bounce =
         -Math.min(collisionPoint.getNormalVelocity(), 0) * this.restitution
-      const bias =
-        (0.2 / timestep) * Math.max(collisionPoint.separation - 0.001, 0)
+      const penetration = Math.max(collisionPoint.separation - 0.001, 0)
+      const bias = (0.2 / timestep) * Math.min(penetration, 0.005)
       targets[j] = Math.max(bounce, bias)
     }
 
