@@ -388,15 +388,18 @@ export class Body {
       let minPenetration = penetration
       let maxEdge = 0
       let minEdge = 0
-      if (separation < -relativeMoveY) {
+      let crossSeparation = Infinity
+      if (separation > eps && separation < -relativeMoveY) {
         maxEdge = 1
+        crossSeparation = separation
       }
 
       // left edge
       separation = halflength + x
       penetration = halflength + maxX
-      if (separation < relativeMoveX) {
+      if (separation > eps && separation < relativeMoveX) {
         maxEdge |= 2
+        crossSeparation = Math.min(crossSeparation, separation)
       }
 
       if (penetration < minPenetration) {
@@ -408,8 +411,9 @@ export class Body {
       // bottom edge
       separation = halfwidth + y
       penetration = halfwidth + maxY
-      if (separation < relativeMoveY) {
+      if (separation > eps && separation < relativeMoveY) {
         maxEdge |= 4
+        crossSeparation = Math.min(crossSeparation, separation)
       }
 
       if (penetration < minPenetration) {
@@ -421,8 +425,9 @@ export class Body {
       // right edge
       separation = halflength - x
       penetration = halflength - minX
-      if (separation < -relativeMoveX) {
+      if (separation > eps && separation < -relativeMoveX) {
         maxEdge |= 8
+        crossSeparation = Math.min(crossSeparation, separation)
       }
 
       if (penetration < minPenetration) {
@@ -435,6 +440,7 @@ export class Body {
       let normalX
       let normalY
       if (maxEdge > 0) {
+        minSeparation = crossSeparation
         let count = 0
         // normal = new Vector(0, 0)
         normalX = 0

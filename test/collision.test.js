@@ -45,6 +45,42 @@ test('rotated box hitting the floor gets the floor normal', () => {
   }
 })
 
+test('stacked box drifting sideways keeps the top normal', () => {
+  // corners of upper box sit exactly on the side edges of lower box
+  const lower = new Body(1).finalize()
+  const upper = new Body(2).setOrigin(0, 0.099).setVelocity(0.001, -0.01).finalize()
+  const points = new TestState([lower, upper]).collide(0.01).flatMap(c => c.collisionPoints)
+  assert.equal(points.length, 2)
+  for (const p of points) {
+    assert.ok(Math.abs(p.normalX) < 1e-9 && Math.abs(p.normalY - 1) < 1e-9, `normal (${p.normalX}, ${p.normalY})`)
+  }
+})
+
+test('separation belongs to the edge of the normal', () => {
+  // corner crosses the left edge 0.02 deep, 0.005 below the top edge
+  const impacted = new FixedBody(1).finalize()
+  const colliding = new Body(2).setOrigin(-0.08, 0.095).setVelocity(3, 0).finalize()
+  const points = new TestState([colliding], [impacted]).collide(0.01).flatMap(c => c.collisionPoints)
+  assert.equal(points.length, 2)
+  for (const p of points) {
+    assert.ok(Math.abs(Math.abs(p.normalX) - 1) < 1e-9 && Math.abs(p.normalY) < 1e-9, `normal (${p.normalX}, ${p.normalY})`)
+    assert.ok(Math.abs(p.separation - 0.02) < 1e-9, `separation ${p.separation}`)
+  }
+})
+
+for (const [name, offset] of [['aligned', 0], ['offset', 0.01]]) {
+  test(`${name} stack of three boxes keeps its height under gravity`, { todo: 'issue #1' }, () => {
+    const boxes = [0, 1, 2].map(i => new Body(i + 1).setOrigin(offset * i, 0.05 + 0.1 * i).setForce(0, -2).finalize())
+    const state = new TestState(boxes, [floor()])
+    state.restitution = 0
+    for (let i = 0; i < 500; i++) {
+      state.advanceByTimestep(0.01)
+    }
+    const height = Math.max(...boxes[2].cornerY)
+    assert.ok(height > 0.29, `stack height ${height}`)
+  })
+}
+
 test('box stacked on another box does not sink into it', () => {
   const lower = new Body(1).setOrigin(0, 0).finalize()
   const upper = new Body(2).setOrigin(0, 0.09).setVelocity(0, -1).finalize()
