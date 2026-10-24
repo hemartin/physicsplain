@@ -363,10 +363,29 @@ export class Body {
       relativeMoveX = tx1
       relativeMoveY = ty1
 
-      // get edge closest to point
+      // extent of colliding body in this body's frame, so that a point
+      // sitting on a side edge (e.g. stacked aligned boxes) does not make
+      // that side edge the closest edge
+      let minX = Infinity
+      let maxX = -Infinity
+      let minY = Infinity
+      let maxY = -Infinity
+      for (let i = 0; i < 4; i++) {
+        const cx = collidingBody.cornerX[i] - this.origin.x
+        const cy = collidingBody.cornerY[i] - this.origin.y
+        minX = Math.min(minX, cx * cos - cy * sin)
+        maxX = Math.max(maxX, cx * cos - cy * sin)
+        minY = Math.min(minY, cx * sin + cy * cos)
+        maxY = Math.max(maxY, cx * sin + cy * cos)
+      }
+
+      // get edge closest to point, i.e. edge of least penetration of
+      // colliding body
       // top edge
       let separation = halfwidth - y
+      let penetration = halfwidth - minY
       let minSeparation = separation
+      let minPenetration = penetration
       let maxEdge = 0
       let minEdge = 0
       if (separation < -relativeMoveY) {
@@ -375,34 +394,40 @@ export class Body {
 
       // left edge
       separation = halflength + x
+      penetration = halflength + maxX
       if (separation < relativeMoveX) {
         maxEdge |= 2
       }
 
-      if (separation < minSeparation) {
+      if (penetration < minPenetration) {
         minSeparation = separation
+        minPenetration = penetration
         minEdge = 1
       }
 
       // bottom edge
       separation = halfwidth + y
+      penetration = halfwidth + maxY
       if (separation < relativeMoveY) {
         maxEdge |= 4
       }
 
-      if (separation < minSeparation) {
+      if (penetration < minPenetration) {
         minSeparation = separation
+        minPenetration = penetration
         minEdge = 2
       }
 
       // right edge
       separation = halflength - x
+      penetration = halflength - minX
       if (separation < -relativeMoveX) {
         maxEdge |= 8
       }
 
-      if (separation < minSeparation) {
+      if (penetration < minPenetration) {
         minSeparation = separation
+        minPenetration = penetration
         minEdge = 3
       }
 
