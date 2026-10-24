@@ -35,15 +35,20 @@ export class Collision {
     }
   }
 
-  apply () {
+  apply (timestep) {
     const collisionCount = this.collisionPoints.length
 
-    // restitution is based on the relative velocity before solving
-    const bounces = []
+    // target velocity along normal: bounce based on the relative velocity
+    // before solving, or push apart penetrating entities (Baumgarte), but
+    // not both to avoid adding energy
+    const targets = []
     for (let j = 0; j < collisionCount; j++) {
-      bounces[j] =
-        Math.min(this.collisionPoints[j].getNormalVelocity(), 0) *
-        this.restitution
+      const collisionPoint = this.collisionPoints[j]
+      const bounce =
+        -Math.min(collisionPoint.getNormalVelocity(), 0) * this.restitution
+      const bias =
+        (0.2 / timestep) * Math.max(collisionPoint.separation - 0.001, 0)
+      targets[j] = Math.max(bounce, bias)
     }
 
     // sequential impulses: apply impulse of each collision point right away
@@ -67,9 +72,8 @@ export class Collision {
         const r2Y = collisionPoint.contactPointY - ieo.y
 
         let normalImpulse =
-          (bounces[j] + collisionPoint.getNormalVelocity()) *
-          collisionPoint.getNormalMass() *
-          -1
+          (targets[j] - collisionPoint.getNormalVelocity()) *
+          collisionPoint.getNormalMass()
 
         // clamp
         const tmp = collisionPoint.accumulatedImpulse

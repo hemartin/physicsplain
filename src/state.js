@@ -121,7 +121,7 @@ export class State {
 
     // apply impulses
     for (const collision of collisions) {
-      collision.apply()
+      collision.apply(timestep)
     }
 
     // advance body

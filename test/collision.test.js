@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { Body, FixedBody } from '../src/physicsplain.js'
+import { Body, FixedBody, FixedLine, Vector } from '../src/physicsplain.js'
 import { TestState, collideAndApply } from './helpers.js'
 
 // floor with its top edge at y = 0
@@ -48,7 +48,7 @@ test('box stacked on another box does not sink into it', { todo: 'issue #2' }, (
   assert.ok(upper.velocity.y > -0.5, `upper vy ${upper.velocity.y}`)
 })
 
-test('stacked boxes under gravity do not keep sinking', { todo: 'issue #3' }, () => {
+test('stacked boxes under gravity do not keep sinking', () => {
   const lower = new Body(1).setOrigin(0, 0.05).setDimension(0.14, 0.1).setForce(0, -2).finalize()
   const upper = new Body(2).setOrigin(0, 0.15).setDimension(0.1, 0.1).setForce(0, -2).finalize()
   const state = new TestState([lower, upper], [floor()])
@@ -60,4 +60,39 @@ test('stacked boxes under gravity do not keep sinking', { todo: 'issue #3' }, ()
   const stackPenetration = Math.max(...lower.cornerY) - Math.min(...upper.cornerY)
   assert.ok(floorPenetration < 0.002, `floor penetration ${floorPenetration}`)
   assert.ok(stackPenetration < 0.002, `stack penetration ${stackPenetration}`)
+})
+
+test('box pushed into the floor moves out without bouncing', () => {
+  const line = new FixedLine(100, new Vector(-1, 0), new Vector(1, 0))
+  for (const fixed of [floor(), line]) {
+    const box = new Body(1).setOrigin(0, 0.04).setForce(0, -2).finalize()
+    const state = new TestState([box], [fixed])
+    state.restitution = 0
+    let maxY = box.origin.y
+    for (let i = 0; i < 100; i++) {
+      state.advanceByTimestep(0.01)
+      maxY = Math.max(maxY, box.origin.y)
+    }
+    const penetration = -Math.min(...box.cornerY)
+    assert.ok(penetration < 0.002, `penetration ${penetration}`)
+    assert.ok(maxY < 0.05, `max y ${maxY}`)
+    assert.ok(Math.abs(box.velocity.y) < 0.001, `vy ${box.velocity.y}`)
+  }
+})
+
+test('box resting on the floor stays put', () => {
+  const box = new Body(1).setOrigin(0, 0.05).setForce(0, -2).finalize()
+  const state = new TestState([box], [floor()])
+  state.restitution = 0
+  for (let i = 0; i < 1000; i++) {
+    state.advanceByTimestep(0.01)
+    assert.ok(Math.abs(box.origin.y - 0.05) < 0.0001, `step ${i}, y ${box.origin.y}`)
+    assert.ok(Math.abs(box.velocity.y) < 0.001, `step ${i}, vy ${box.velocity.y}`)
+  }
+})
+
+test('elastic bounce of a penetrating box keeps its speed', () => {
+  const box = new Body(1).setOrigin(0, 0.04).setVelocity(0, -1).finalize()
+  collideAndApply(new TestState([box], [floor()]))
+  assert.ok(Math.abs(box.velocity.y - 1) < 0.01, `vy ${box.velocity.y}`)
 })

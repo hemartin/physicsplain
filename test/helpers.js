@@ -25,7 +25,7 @@ export class TestState extends State {
 export function collideAndApply (state, timestep = 0.01) {
   const collisions = state.collide(timestep)
   for (const collision of collisions) {
-    collision.apply()
+    collision.apply(timestep)
   }
   return collisions
 }
