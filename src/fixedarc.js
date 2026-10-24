@@ -1,5 +1,6 @@
 import { Collision } from './collision.js'
 import { CollisionPoint } from './collisionpoint.js'
+import { FixedEntity } from './fixedentity.js'
 import { Vector } from './vector.js'
 
 /**
@@ -12,12 +13,9 @@ import { Vector } from './vector.js'
  *
  * @author Martin Hentschel
  */
-export class FixedArc {
+export class FixedArc extends FixedEntity {
   constructor (id, origin, radius, width, startAngle, endAngle) {
-    this.id = id
-    this.origin = origin
-    this.velocity = new Vector(0, 0)
-    this.angularVelocity = 0
+    super(id, origin)
     this.radius = radius
     this.width = width
     this.startAngle = startAngle
@@ -76,20 +74,4 @@ export class FixedArc {
     }
     return collision
   }
-
-  // this is a fixed entity
-  invertedMass () {
-    return 0
-  }
-
-  // this is a fixed entity
-  invertedInertia () {
-    return 0
-  }
-
-  // fixed entity has no velocity
-  addVelocity (velocity) {}
-
-  // fixed entity has no angular velocity
-  addAngularVelocity (angularVelocity) {}
 }

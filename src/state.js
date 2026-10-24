@@ -10,7 +10,6 @@ import { Collision } from './collision.js'
  */
 export class State {
   constructor () {
-    this.start = 0
     this.previous = 0
     this.remainder = 0
 
@@ -84,9 +83,6 @@ export class State {
 
     const fixedTimestep = 10 // in ms
 
-    if (this.start === 0) {
-      this.start = now
-    }
     if (this.previous === 0) {
       this.previous = now
     }

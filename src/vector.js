@@ -64,6 +64,7 @@ export class Vector {
   clear () {
     this.x = 0
     this.y = 0
+    return this
   }
 
   toString () {

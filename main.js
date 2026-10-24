@@ -18,13 +18,18 @@ import {
 const canvasWidth = 500
 const canvasHeight = 260
 
-class Example1 extends State {
-  constructor (document) {
+/*
+ * Example drawn on its own canvas. It restarts every repeat milliseconds by
+ * calling initBodies() again.
+ */
+class Example extends State {
+  constructor (document, canvasId, backgroundColor, repeat) {
     super()
-    this.canvas = document.getElementById('canvas1')
+    // DOM elements
+    this.canvas = document.getElementById(canvasId)
     this.context = this.canvas.getContext('2d')
-    this.backgroundColor = '#e0e5db'
-    this.repeat = 4000 // repeat example every 4 seconds
+    this.backgroundColor = backgroundColor
+    this.repeat = repeat
     this.lastRepeat = 0
 
     // bodies
@@ -32,8 +37,50 @@ class Example1 extends State {
     this.fixedBodies = []
     this.initBodies()
 
-    // colors
+    // colors by body id
     this.colors = []
+  }
+
+  // overridden generator methods returning bodies
+  * getMovingBodies () {
+    yield * this.movingBodies
+  }
+
+  * getFixedBodies () {
+    yield * this.fixedBodies
+  }
+
+  // draws bodies, override to draw more
+  draw () {
+    for (const body of this.movingBodies) {
+      drawBody(body, this.canvas, this.context, this.colors)
+    }
+    for (const body of this.fixedBodies) {
+      drawBody(body, this.canvas, this.context, this.colors)
+    }
+  }
+
+  postAdvance (now) {
+    // clear canvas
+    this.context.fillStyle = this.backgroundColor
+    this.context.fillRect(0, 0, this.canvas.width, this.canvas.height)
+
+    this.draw()
+
+    // reset example if repeat time has passed
+    if (this.lastRepeat === 0) {
+      this.lastRepeat = now
+    }
+    if (now - this.lastRepeat > this.repeat) {
+      this.initBodies()
+      this.lastRepeat = now
+    }
+  }
+}
+
+class Example1 extends Example {
+  constructor (document) {
+    super(document, 'canvas1', '#e0e5db', 4000) // repeat every 4 seconds
     for (const body of this.movingBodies) {
       this.colors[body.id] = body.id === 0 ? '#00b8b8' : '#e4bd0b'
     }
@@ -75,57 +122,11 @@ class Example1 extends State {
     this.movingBodies[0].setTarget(8, 0)
     this.movingBodies[0].thrust = 8
   }
-
-  // overridden generator methods returning bodies
-  * getMovingBodies () {
-    yield * this.movingBodies
-  }
-
-  * getFixedBodies () {
-    yield * this.fixedBodies
-  }
-
-  postAdvance (now) {
-    // clear canvas
-    this.context.fillStyle = this.backgroundColor
-    this.context.fillRect(0, 0, this.canvas.width, this.canvas.height)
-
-    // draw bodies
-    for (const body of this.movingBodies) {
-      drawBody(body, this.canvas, this.context, this.colors)
-    }
-    for (const body of this.fixedBodies) {
-      drawBody(body, this.canvas, this.context, this.colors)
-    }
-
-    // reset example if repeat time has passed
-    if (this.lastRepeat === 0) {
-      this.lastRepeat = now
-    }
-    if (now - this.lastRepeat > this.repeat) {
-      this.initBodies()
-      this.lastRepeat = now
-    }
-  }
 }
 
-class Example2 extends State {
+class Example2 extends Example {
   constructor (document) {
-    super()
-    // DOM elements
-    this.canvas = document.getElementById('canvas2')
-    this.context = this.canvas.getContext('2d')
-    this.backgroundColor = '#0098d8'
-    this.repeat = 7000 // repeat example every 7 seconds
-    this.lastRepeat = 0
-
-    // bodies
-    this.movingBodies = []
-    this.fixedBodies = []
-    this.initBodies()
-
-    // colors
-    this.colors = []
+    super(document, 'canvas2', '#0098d8', 7000) // repeat every 7 seconds
     for (const body of this.movingBodies) {
       this.colors[body.id] = body.id < 3 ? '#e5e7de' : '#f54123'
     }
@@ -167,57 +168,11 @@ class Example2 extends State {
       body.setForce(0, -2)
     }
   }
-
-  // overridden generator methods returning bodies
-  * getMovingBodies () {
-    yield * this.movingBodies
-  }
-
-  * getFixedBodies () {
-    yield * this.fixedBodies
-  }
-
-  postAdvance (now) {
-    // clear canvas
-    this.context.fillStyle = this.backgroundColor
-    this.context.fillRect(0, 0, this.canvas.width, this.canvas.height)
-
-    // draw bodies
-    for (const body of this.movingBodies) {
-      drawBody(body, this.canvas, this.context, this.colors)
-    }
-    for (const body of this.fixedBodies) {
-      drawBody(body, this.canvas, this.context, this.colors)
-    }
-
-    // reset example if repeat time has passed
-    if (this.lastRepeat === 0) {
-      this.lastRepeat = now
-    }
-    if (now - this.lastRepeat > this.repeat) {
-      this.initBodies()
-      this.lastRepeat = now
-    }
-  }
 }
 
-class Example3 extends State {
+class Example3 extends Example {
   constructor (document) {
-    super()
-    // DOM elements
-    this.canvas = document.getElementById('canvas3')
-    this.context = this.canvas.getContext('2d')
-    this.backgroundColor = '#f45844'
-    this.repeat = 4000 // repeat example every 4 seconds
-    this.lastRepeat = 0
-
-    // bodies
-    this.movingBodies = []
-    this.fixedBodies = []
-    this.initBodies()
-
-    // colors
-    this.colors = []
+    super(document, 'canvas3', '#f45844', 4000) // repeat every 4 seconds
     for (const body of this.movingBodies) {
       this.colors[body.id] = '#dfe0e2'
     }
@@ -253,64 +208,20 @@ class Example3 extends State {
     }
   }
 
-  // overridden generator methods returning bodies
-  * getMovingBodies () {
-    yield * this.movingBodies
-  }
-
-  * getFixedBodies () {
-    yield * this.fixedBodies
-  }
-
-  postAdvance (now) {
-    // clear canvas
-    this.context.fillStyle = this.backgroundColor
-    this.context.fillRect(0, 0, this.canvas.width, this.canvas.height)
-
-    // draw circles
+  draw () {
     drawCircles(
       this.canvas,
       this.context,
       this.colors[this.fixedBodies[0].id],
       this.backgroundColor
     )
-
-    // draw bodies
-    for (const body of this.movingBodies) {
-      drawBody(body, this.canvas, this.context, this.colors)
-    }
-    for (const body of this.fixedBodies) {
-      drawBody(body, this.canvas, this.context, this.colors)
-    }
-
-    // reset example if repeat time has passed
-    if (this.lastRepeat === 0) {
-      this.lastRepeat = now
-    }
-    if (now - this.lastRepeat > this.repeat) {
-      this.initBodies()
-      this.lastRepeat = now
-    }
+    super.draw()
   }
 }
 
-class Example4 extends State {
+class Example4 extends Example {
   constructor (document) {
-    super()
-    // DOM elements
-    this.canvas = document.getElementById('canvas4')
-    this.context = this.canvas.getContext('2d')
-    this.backgroundColor = '#fff4c4'
-    this.repeat = 3000 // repeat example every 3 seconds
-    this.lastRepeat = 0
-
-    // bodies
-    this.movingBodies = []
-    this.fixedBodies = []
-    this.initBodies()
-
-    // colors
-    this.colors = []
+    super(document, 'canvas4', '#fff4c4', 3000) // repeat every 3 seconds
     for (const body of this.movingBodies) {
       this.colors[body.id] = '#7e5c9f'
     }
@@ -334,39 +245,12 @@ class Example4 extends State {
     this.movingBodies[2].velocity.x = 2.2
   }
 
-  // overridden generator methods returning bodies
-  * getMovingBodies () {
-    yield * this.movingBodies
-  }
-
-  * getFixedBodies () {
-    yield * this.fixedBodies
-  }
-
-  postAdvance (now) {
-    // clear canvas
-    this.context.fillStyle = this.backgroundColor
-    this.context.fillRect(0, 0, this.canvas.width, this.canvas.height)
-
-    // draw lines
+  draw () {
     drawLine(this.canvas, this.context, this.fixedBodies[0], 1, '#d2c4e0')
     drawLine(this.canvas, this.context, this.fixedBodies[1], 1, '#d2c4e0')
     drawLine(this.canvas, this.context, this.fixedBodies[0], 0.01, '#66408b')
     drawLine(this.canvas, this.context, this.fixedBodies[1], 0.01, '#66408b')
-
-    // draw bodies
-    for (const body of this.movingBodies) {
-      drawBody(body, this.canvas, this.context, this.colors)
-    }
-
-    // reset example if repeat time has passed
-    if (this.lastRepeat === 0) {
-      this.lastRepeat = now
-    }
-    if (now - this.lastRepeat > this.repeat) {
-      this.initBodies()
-      this.lastRepeat = now
-    }
+    super.draw()
   }
 }
 
@@ -406,8 +290,8 @@ window.onload = function () {
  * Draws body on canvas.
  */
 function drawBody (body, canvas, context, colors) {
-  if (body.id >= 30) {
-    // hack to ignore circles and arcs
+  if (!(body instanceof Body)) {
+    // circles, arcs and lines are drawn separately
     return
   }
   context.fillStyle = colors[body.id]

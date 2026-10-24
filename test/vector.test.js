@@ -65,9 +65,9 @@ test('distanceFrom returns the distance to another vector', () => {
   assert.equal(new Vector(4, 5).distanceFrom(new Vector(1, 1)), 5)
 })
 
-test('clear sets x and y to 0', () => {
+test('clear sets x and y to 0 and returns this', () => {
   const v = new Vector(1, 2)
-  v.clear()
+  assert.equal(v.clear(), v)
   assert.deepEqual([v.x, v.y], [0, 0])
 })
 

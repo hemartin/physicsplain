@@ -165,3 +165,13 @@ test('elastic bounce of a penetrating box keeps its speed', () => {
   collideAndApply(new TestState([box], [floor()]))
   assert.ok(Math.abs(box.velocity.y - 1) < 0.01, `vy ${box.velocity.y}`)
 })
+
+test('overlapping fixed bodies in the list of moving bodies do not produce NaN', () => {
+  const a = new FixedBody(1).setOrigin(0, 0).finalize()
+  const b = new FixedBody(2).setOrigin(0.05, 0.05).finalize()
+  const state = new TestState([a, b])
+  assert.equal(collideAndApply(state).length, 1)
+  for (const body of [a, b]) {
+    assert.deepEqual([body.velocity.x, body.velocity.y, body.angularVelocity], [0, 0, 0])
+  }
+})
