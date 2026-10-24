@@ -14,6 +14,15 @@ test('advance moves body by velocity', () => {
   assert.deepEqual([body.origin.x, body.origin.y], [0.5, -1])
 })
 
+test('angle wraps to [-PI, PI] when spinning clockwise', () => {
+  const body = new Body(1).setAngularVelocity(-10).finalize()
+  for (let i = 0; i < 100; i++) {
+    body.advance(0.01)
+  }
+  // -10 rad is the same direction as -10 + 4PI
+  assert.ok(Math.abs(body.angle - (-10 + 4 * Math.PI)) < 1e-9, `angle ${body.angle}`)
+})
+
 test('fixed body has infinite mass', () => {
   const body = new FixedBody(1).finalize()
   assert.equal(body.invertedMass(), 0)
@@ -64,15 +73,6 @@ test('angle wraps to [-PI, PI]', () => {
     body.advance(0.01)
   }
   assert.ok(Math.abs(body.angle) <= Math.PI, `angle ${body.angle}`)
-})
-
-test('angle wraps to [-PI, PI] when spinning clockwise', () => {
-  const body = new Body(1).setAngularVelocity(-10).finalize()
-  for (let i = 0; i < 100; i++) {
-    body.advance(0.01)
-  }
-  // -10 rad is the same direction as -10 + 4PI
-  assert.ok(Math.abs(body.angle - (-10 + 4 * Math.PI)) < 1e-9, `angle ${body.angle}`)
 })
 
 test('target-angle steering turns the short way', { todo: 'issue #5' }, () => {
