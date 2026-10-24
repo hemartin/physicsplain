@@ -45,6 +45,10 @@ export class Body {
     // after every call to advance()
     this.cornerX = [0, 0, 0, 0]
     this.cornerY = [0, 0, 0, 0]
+
+    // inertia and corners of default values, so that a body is usable
+    // without calling finalize()
+    this.finalize()
   }
 
   /*

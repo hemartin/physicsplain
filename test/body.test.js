@@ -74,9 +74,19 @@ test('target-angle steering turns the short way', { todo: 'issue #5' }, () => {
   assert.ok(body.angularVelocity < 0, `angularVelocity ${body.angularVelocity}`)
 })
 
-test('body without finalize() has finite inertia', { todo: 'issue #8' }, () => {
+test('body without finalize() has finite inertia', () => {
   const body = new Body(1).setOrigin(0, 0).setAngularForce(1)
   body.applyForces(0.01)
   body.advance(0.01)
   assert.ok(Number.isFinite(body.angularVelocity), `angularVelocity ${body.angularVelocity}`)
+})
+
+test('body without finalize() turns like a finalized body with default values', () => {
+  const body = new Body(1).setAngularForce(1)
+  const finalized = new Body(2).setAngularForce(1).finalize()
+  body.applyForces(0.01)
+  finalized.applyForces(0.01)
+  assert.equal(body.angularVelocity, finalized.angularVelocity)
+  assert.deepEqual(body.cornerX, finalized.cornerX)
+  assert.deepEqual(body.cornerY, finalized.cornerY)
 })
