@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { Body, FixedBody } from '../src/physicsplain.js'
+import { Body, FixedBody, Vector } from '../src/physicsplain.js'
 
 test('finalize computes corners of axis-aligned body', () => {
   const body = new Body(1).setOrigin(1, 2).setDimension(0.4, 0.2).finalize()
@@ -14,7 +14,7 @@ test('advance moves body by velocity', () => {
   assert.deepEqual([body.origin.x, body.origin.y], [0.5, -1])
 })
 
-test('angle wraps to [-PI, PI] when spinning clockwise', () => {
+test('angle wraps to (-PI, PI] when spinning clockwise', () => {
   const body = new Body(1).setAngularVelocity(-10).finalize()
   for (let i = 0; i < 100; i++) {
     body.advance(0.01)
@@ -89,12 +89,33 @@ test('body stops turning after unsetTargetAngle', () => {
   assert.equal(body.angularVelocity, 0)
 })
 
-test('angle wraps to [-PI, PI]', () => {
+test('angle wraps to (-PI, PI]', () => {
   const body = new Body(1).setAngularVelocity(10).finalize()
   for (let i = 0; i < 100; i++) {
     body.advance(0.01)
   }
   assert.ok(Math.abs(body.angle) <= Math.PI, `angle ${body.angle}`)
+})
+
+test('setAngle wraps to (-PI, PI]', () => {
+  assert.ok(Math.abs(new Body(1).setAngle(3 * Math.PI / 2).angle + Math.PI / 2) < 1e-12)
+  assert.ok(Math.abs(new Body(1).setAngle(10).angle - (10 - 4 * Math.PI)) < 1e-12)
+  assert.equal(new Body(1).setAngle(-0.5).angle, -0.5)
+})
+
+test('body angle and Vector.angle share the boundary at PI', () => {
+  assert.equal(new Body(1).setAngle(Math.PI).angle, Math.PI)
+  assert.equal(new Body(1).setAngle(-Math.PI).angle, Math.PI)
+  assert.equal(Vector.angle(-1, 0), Math.PI)
+})
+
+test('body aimed with Vector.angle keeps that angle', () => {
+  for (const [x, y] of [[1, 1], [-1, 1], [-1, -1], [1, -1], [-1, 0]]) {
+    const direction = Vector.angle(x, y)
+    const body = new Body(1).setAngle(direction).finalize()
+    body.advance(0.01)
+    assert.equal(body.angle, direction, `direction (${x}, ${y})`)
+  }
 })
 
 test('angle wraps after more than one turn in a single step', () => {

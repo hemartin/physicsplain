@@ -4,8 +4,8 @@ import { Vector } from './vector.js'
 
 export const bodyInfiniteMass = -1
 
-// wraps angle to [-PI, PI)
-const wrapAngle = (angle) => angle - 2 * Math.PI * Math.round(angle / (2 * Math.PI))
+// wraps angle to (-PI, PI], the range of Math.atan2 and Vector.angle
+const wrapAngle = (angle) => angle - 2 * Math.PI * Math.ceil(angle / (2 * Math.PI) - 0.5)
 
 /**
  * Rigid body.
@@ -75,7 +75,7 @@ export class Body {
   }
 
   setAngle (a) {
-    this.angle = a
+    this.angle = wrapAngle(a)
     return this
   }
 
