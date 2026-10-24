@@ -50,6 +50,28 @@ test('body turns towards its target angle', () => {
   assert.ok(body.angularVelocity > 0, `angularVelocity ${body.angularVelocity}`)
 })
 
+test('target-angle steering turns the short way after several turns', () => {
+  // angle 4PI - 0.1 points the same way as -0.1, so target 0 is 0.1 rad counter-clockwise
+  const body = new Body(1).setAngle(4 * Math.PI - 0.1).finalize()
+  body.setTargetAngle(0)
+  body.applyForces(0.01)
+  assert.ok(body.angularVelocity > 0, `angularVelocity ${body.angularVelocity}`)
+})
+
+test('target-angle steering turns when target is exactly opposite', () => {
+  const body = new Body(1).finalize()
+  body.setTargetAngle(Math.PI)
+  body.applyForces(0.01)
+  assert.ok(Math.abs(body.angularVelocity) > 0, `angularVelocity ${body.angularVelocity}`)
+})
+
+test('target-angle steering does not turn when target points the same way', () => {
+  const body = new Body(1).setAngle(-Math.PI / 2).finalize()
+  body.setTargetAngle(3 * Math.PI / 2)
+  body.applyForces(0.01)
+  assert.equal(body.angularVelocity, 0)
+})
+
 test('body stops turning after unsetTargetAngle', () => {
   const body = new Body(1).setTargetAngle(1).finalize()
   body.unsetTargetAngle()
@@ -72,28 +94,6 @@ test('target-angle steering turns the short way', () => {
   body.setTargetAngle(3 * Math.PI / 2)
   body.applyForces(0.01)
   assert.ok(body.angularVelocity < 0, `angularVelocity ${body.angularVelocity}`)
-})
-
-test('target-angle steering turns the short way after several turns', () => {
-  // angle 4PI - 0.1 points the same way as -0.1, so target 0 is 0.1 rad counter-clockwise
-  const body = new Body(1).setAngle(4 * Math.PI - 0.1).finalize()
-  body.setTargetAngle(0)
-  body.applyForces(0.01)
-  assert.ok(body.angularVelocity > 0, `angularVelocity ${body.angularVelocity}`)
-})
-
-test('target-angle steering turns when target is exactly opposite', () => {
-  const body = new Body(1).finalize()
-  body.setTargetAngle(Math.PI)
-  body.applyForces(0.01)
-  assert.ok(Math.abs(body.angularVelocity) > 0, `angularVelocity ${body.angularVelocity}`)
-})
-
-test('target-angle steering does not turn when target points the same way', () => {
-  const body = new Body(1).setAngle(-Math.PI / 2).finalize()
-  body.setTargetAngle(3 * Math.PI / 2)
-  body.applyForces(0.01)
-  assert.equal(body.angularVelocity, 0)
 })
 
 test('body without finalize() has finite inertia', { todo: 'issue #8' }, () => {
