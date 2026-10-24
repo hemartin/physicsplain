@@ -23,6 +23,10 @@ export class CollisionPoint {
     this.contactPointY = contactPointY
     this.separation = separation
 
+    // normal velocity when the collision is detected, before forces of this
+    // step are applied; bounce is based on it so forces are not reflected
+    this.initialNormalVelocity = this.getNormalVelocity()
+
     this.accumulatedImpulse = 0
     this.nv1 = new Vector(0, 0)
     this.nw1 = 0

@@ -68,11 +68,11 @@ test('separation belongs to the edge of the normal', () => {
   }
 })
 
-for (const [name, offset] of [['aligned', 0], ['offset', 0.01]]) {
-  test(`${name} stack of three boxes keeps its height under gravity`, () => {
+for (const [name, offset, restitution] of [['aligned', 0, 0], ['offset', 0.01, 0], ['aligned', 0, 1], ['offset', 0.01, 1]]) {
+  test(`${name} stack of three boxes keeps its height under gravity, restitution ${restitution}`, () => {
     const boxes = [0, 1, 2].map(i => new Body(i + 1).setOrigin(offset * i, 0.05 + 0.1 * i).setForce(0, -2).finalize())
     const state = new TestState(boxes, [floor()])
-    state.restitution = 0
+    state.restitution = restitution
     for (let i = 0; i < 500; i++) {
       state.advanceByTimestep(0.01)
     }
@@ -164,4 +164,25 @@ test('elastic bounce of a penetrating box keeps its speed', () => {
   const box = new Body(1).setOrigin(0, 0.04).setVelocity(0, -1).finalize()
   collideAndApply(new TestState([box], [floor()]))
   assert.ok(Math.abs(box.velocity.y - 1) < 0.01, `vy ${box.velocity.y}`)
+})
+
+test('elastic bounce under gravity keeps its height', () => {
+  const box = new Body(1).setOrigin(0, 0.55).setForce(0, -2).finalize()
+  box.lateralFriction = 0
+  box.rotationalFriction = 0
+  const state = new TestState([box], [floor()])
+  state.restitution = 1
+  const apexes = []
+  let previousVy = 0
+  for (let i = 0; i < 1500; i++) {
+    state.advanceByTimestep(0.01)
+    if (previousVy > 0 && box.velocity.y <= 0) {
+      apexes.push(box.origin.y)
+    }
+    previousVy = box.velocity.y
+  }
+  assert.ok(apexes.length >= 5, `${apexes.length} bounces`)
+  for (const apex of apexes) {
+    assert.ok(Math.abs(apex - 0.55) < 0.001, `apexes ${apexes.map(a => a.toFixed(4))}`)
+  }
 })
