@@ -38,7 +38,7 @@ test('advance caps elapsed time after a long pause', () => {
   assert.ok(steps <= 25, `${steps} steps in one frame`)
 })
 
-test('postStep receives the timestep in seconds', { todo: 'issue #10' }, () => {
+test('postStep receives the timestep in seconds', () => {
   const state = new TestState()
   const timesteps = []
   state.postStep = (timestep) => timesteps.push(timestep)
