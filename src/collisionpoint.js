@@ -84,6 +84,67 @@ export class CollisionPoint {
     return Vector.dot(deltaX, deltaY, this.normalX, this.normalY)
   }
 
+  /**
+   * @returns change of the normal velocity at this point per unit impulse
+   * along the (same) normal at the other point, between the same entities
+   */
+  getCoupling (other) {
+    // Vector r1 = Vector.substract(contactPoint, collidingEntity.getOrigin())
+    const ceo = this.collidingEntity.origin
+    const rn1 = Vector.cross(this.contactPointX - ceo.x, this.contactPointY - ceo.y, this.normalX, this.normalY)
+    const otherRn1 = Vector.cross(other.contactPointX - ceo.x, other.contactPointY - ceo.y, this.normalX, this.normalY)
+
+    // Vector r2 = Vector.substract(contactPoint, impactedEntity.getOrigin())
+    const ieo = this.impactedEntity.origin
+    const rn2 = Vector.cross(this.contactPointX - ieo.x, this.contactPointY - ieo.y, this.normalX, this.normalY)
+    const otherRn2 = Vector.cross(other.contactPointX - ieo.x, other.contactPointY - ieo.y, this.normalX, this.normalY)
+
+    return (
+      this.collidingEntity.invertedMass() +
+      this.impactedEntity.invertedMass() +
+      rn1 * otherRn1 * this.collidingEntity.invertedInertia() +
+      rn2 * otherRn2 * this.impactedEntity.invertedInertia()
+    )
+  }
+
+  /**
+   * Applies an impulse along the normal at this point: pushes colliding
+   * entity along the normal, impacted entity against it.
+   */
+  applyImpulse (normalImpulse) {
+    // Vector r1 = Vector.substract(contactPoint, collidingEntity.getOrigin())
+    const ceo = this.collidingEntity.origin
+    const r1X = this.contactPointX - ceo.x
+    const r1Y = this.contactPointY - ceo.y
+
+    // Vector r2 = Vector.substract(contactPoint, impactedEntity.getOrigin())
+    const ieo = this.impactedEntity.origin
+    const r2X = this.contactPointX - ieo.x
+    const r2Y = this.contactPointY - ieo.y
+
+    // Vector impulse = Vector.scale(normal, normalImpulse)
+    const impulseX = this.normalX * normalImpulse
+    const impulseY = this.normalY * normalImpulse
+
+    const ceIm = this.collidingEntity.invertedMass()
+    const nw1 =
+      this.collidingEntity.invertedInertia() *
+      Vector.cross(r1X, r1Y, impulseX, impulseY)
+    const ieIm = this.impactedEntity.invertedMass()
+    const nw2 =
+      -this.impactedEntity.invertedInertia() *
+      Vector.cross(r2X, r2Y, impulseX, impulseY)
+    this.addTempVelocities(
+      impulseX * ceIm,
+      impulseY * ceIm,
+      nw1,
+      -impulseX * ieIm,
+      -impulseY * ieIm,
+      nw2
+    )
+    this.applyTempVelocities()
+  }
+
   addTempVelocities (v1X, v1Y, w1, v2X, v2Y, w2) {
     this.nv1.x += v1X
     this.nv1.y += v1Y

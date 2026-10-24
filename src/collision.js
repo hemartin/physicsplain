@@ -1,5 +1,4 @@
 import { UnionFind } from './unionfind.js'
-import { Vector } from './vector.js'
 
 /**
  * A collision contains one or more collision points.
@@ -52,26 +51,36 @@ export class Collision {
       targets[j] = Math.max(bounce, bias)
     }
 
+    // two collision points between the same entities with the same normal
+    // are solved together (block solver); solving them one after the other
+    // converges slowly if they are close together relative to the entity
+    // size, e.g. a narrow box landing on its short side, and leaves it
+    // spinning
+    const pairedWithNext = []
+    for (let j = 0; j + 1 < collisionCount; j++) {
+      pairedWithNext[j] =
+        !pairedWithNext[j - 1] &&
+        Collision.isPair(this.collisionPoints[j], this.collisionPoints[j + 1])
+    }
+
     // sequential impulses: apply impulse of each collision point right away
     let iteration = 0
     let accumulatedImpulse = 0
     do {
       accumulatedImpulse = 0
       for (let j = 0; j < collisionCount; j++) {
+        if (pairedWithNext[j]) {
+          accumulatedImpulse += Collision.solvePair(
+            this.collisionPoints[j],
+            this.collisionPoints[j + 1],
+            targets[j],
+            targets[j + 1]
+          )
+          j++
+          continue
+        }
+
         const collisionPoint = this.collisionPoints[j]
-
-        // Vector r1 = Vector.substract(collisionPoint.contactPoint,
-        // collisionPoint.collidingEntity.getOrigin())
-        const ceo = collisionPoint.collidingEntity.origin
-        const r1X = collisionPoint.contactPointX - ceo.x
-        const r1Y = collisionPoint.contactPointY - ceo.y
-
-        // Vector r2 = Vector.substract(collisionPoint.contactPoint,
-        // collisionPoint.impactedEntity.getOrigin())
-        const ieo = collisionPoint.impactedEntity.origin
-        const r2X = collisionPoint.contactPointX - ieo.x
-        const r2Y = collisionPoint.contactPointY - ieo.y
-
         let normalImpulse =
           (targets[j] - collisionPoint.getNormalVelocity()) *
           collisionPoint.getNormalMass()
@@ -83,44 +92,75 @@ export class Collision {
           0
         )
         normalImpulse = collisionPoint.accumulatedImpulse - tmp
-        // console.log("impulse: " + normalImpulse)
 
         accumulatedImpulse += Math.abs(normalImpulse)
-
-        // Vector impulse = Vector.scale(collisionPoint.normal,
-        // normalImpulse)
-        const impulseX = collisionPoint.normalX * normalImpulse
-        const impulseY = collisionPoint.normalY * normalImpulse
-
-        // Vector nv1 = Vector.scale(impulse,
-        // collisionPoint.collidingEntity.invertedMass())
-        const ceIm = collisionPoint.collidingEntity.invertedMass()
-        const nv1X = impulseX * ceIm
-        const nv1Y = impulseY * ceIm
-
-        const nw1 =
-          collisionPoint.collidingEntity.invertedInertia() *
-          Vector.cross(r1X, r1Y, impulseX, impulseY)
-
-        // Vector nv2 = Vector.scale(impulse,
-        // collisionPoint.impactedEntity.invertedMass())
-        const ieIm = collisionPoint.impactedEntity.invertedMass()
-        let nv2X = impulseX * ieIm
-        let nv2Y = impulseY * ieIm
-
-        // nv2.negate()
-        nv2X = -nv2X
-        nv2Y = -nv2Y
-
-        const nw2 =
-          -collisionPoint.impactedEntity.invertedInertia() *
-          Vector.cross(r2X, r2Y, impulseX, impulseY)
-        collisionPoint.addTempVelocities(nv1X, nv1Y, nw1, nv2X, nv2Y, nw2)
-        collisionPoint.applyTempVelocities()
+        collisionPoint.applyImpulse(normalImpulse)
       }
 
       iteration++
     } while (accumulatedImpulse > 0.000001 && iteration < 50)
+  }
+
+  static isPair (cp1, cp2) {
+    if (
+      cp1.collidingEntity !== cp2.collidingEntity ||
+      cp1.impactedEntity !== cp2.impactedEntity ||
+      Math.abs(cp1.normalX - cp2.normalX) > 1e-9 ||
+      Math.abs(cp1.normalY - cp2.normalY) > 1e-9
+    ) {
+      return false
+    }
+
+    // points (almost) on top of each other cannot be solved together
+    const k11 = 1 / cp1.getNormalMass()
+    const k22 = 1 / cp2.getNormalMass()
+    const k12 = cp1.getCoupling(cp2)
+    return k11 * k11 < 1000 * (k11 * k22 - k12 * k12)
+  }
+
+  /**
+   * Solves two collision points together: finds accumulated impulses x1,
+   * x2 >= 0 such that the normal velocities reach their targets, or exceed
+   * them where an impulse is 0 (as in Box2D's block solver).
+   *
+   * @returns sum of absolute impulse changes
+   */
+  static solvePair (cp1, cp2, target1, target2) {
+    const k11 = 1 / cp1.getNormalMass()
+    const k22 = 1 / cp2.getNormalMass()
+    const k12 = cp1.getCoupling(cp2)
+    const a1 = cp1.accumulatedImpulse
+    const a2 = cp2.accumulatedImpulse
+
+    // normal velocity minus target after impulses x: K * x + b
+    const b1 = cp1.getNormalVelocity() - target1 - (k11 * a1 + k12 * a2)
+    const b2 = cp2.getNormalVelocity() - target2 - (k12 * a1 + k22 * a2)
+
+    // try both points pushing, then only one of them, then neither
+    let x1 = a1
+    let x2 = a2
+    const det = k11 * k22 - k12 * k12
+    const both1 = -(k22 * b1 - k12 * b2) / det
+    const both2 = -(k11 * b2 - k12 * b1) / det
+    if (both1 >= 0 && both2 >= 0) {
+      x1 = both1
+      x2 = both2
+    } else if (-b1 / k11 >= 0 && k12 * (-b1 / k11) + b2 >= 0) {
+      x1 = -b1 / k11
+      x2 = 0
+    } else if (-b2 / k22 >= 0 && k12 * (-b2 / k22) + b1 >= 0) {
+      x1 = 0
+      x2 = -b2 / k22
+    } else if (b1 >= 0 && b2 >= 0) {
+      x1 = 0
+      x2 = 0
+    }
+
+    cp1.accumulatedImpulse = x1
+    cp2.accumulatedImpulse = x2
+    cp1.applyImpulse(x1 - a1)
+    cp2.applyImpulse(x2 - a2)
+    return Math.abs(x1 - a1) + Math.abs(x2 - a2)
   }
 
   static mergeCollisions (collisions) {
