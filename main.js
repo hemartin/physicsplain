@@ -50,22 +50,23 @@ class Example extends State {
     yield * this.fixedBodies
   }
 
-  // draws bodies, override to draw more
-  draw () {
+  // draws bodies between the last two steps (alpha, see State.postAdvance),
+  // override to draw more
+  draw (alpha) {
     for (const body of this.movingBodies) {
-      drawBody(body, this.canvas, this.context, this.colors)
+      drawBody(body, this.canvas, this.context, this.colors, alpha)
     }
     for (const body of this.fixedBodies) {
-      drawBody(body, this.canvas, this.context, this.colors)
+      drawBody(body, this.canvas, this.context, this.colors, alpha)
     }
   }
 
-  postAdvance (now) {
+  postAdvance (now, alpha) {
     // clear canvas
     this.context.fillStyle = this.backgroundColor
     this.context.fillRect(0, 0, this.canvas.width, this.canvas.height)
 
-    this.draw()
+    this.draw(alpha)
 
     // reset example if repeat time has passed
     if (this.lastRepeat === 0) {
@@ -208,14 +209,14 @@ class Example3 extends Example {
     }
   }
 
-  draw () {
+  draw (alpha) {
     drawCircles(
       this.canvas,
       this.context,
       this.colors[this.fixedBodies[0].id],
       this.backgroundColor
     )
-    super.draw()
+    super.draw(alpha)
   }
 }
 
@@ -245,12 +246,12 @@ class Example4 extends Example {
     this.movingBodies[2].velocity.x = 2.2
   }
 
-  draw () {
+  draw (alpha) {
     drawLine(this.canvas, this.context, this.fixedBodies[0], 1, '#d2c4e0')
     drawLine(this.canvas, this.context, this.fixedBodies[1], 1, '#d2c4e0')
     drawLine(this.canvas, this.context, this.fixedBodies[0], 0.01, '#66408b')
     drawLine(this.canvas, this.context, this.fixedBodies[1], 0.01, '#66408b')
-    super.draw()
+    super.draw(alpha)
   }
 }
 
@@ -287,18 +288,19 @@ window.onload = function () {
 }
 
 /*
- * Draws body on canvas.
+ * Draws body on canvas between the last two steps (alpha).
  */
-function drawBody (body, canvas, context, colors) {
+function drawBody (body, canvas, context, colors, alpha) {
   if (!(body instanceof Body)) {
     // circles, arcs and lines are drawn separately
     return
   }
+  const { cornerX, cornerY } = body.interpolatedCorners(alpha)
   context.fillStyle = colors[body.id]
   context.beginPath()
-  context.moveTo(tx(canvas, body.cornerX[0]), ty(canvas, body.cornerY[0]))
+  context.moveTo(tx(canvas, cornerX[0]), ty(canvas, cornerY[0]))
   for (let i = 1; i < 4; i++) {
-    context.lineTo(tx(canvas, body.cornerX[i]), ty(canvas, body.cornerY[i]))
+    context.lineTo(tx(canvas, cornerX[i]), ty(canvas, cornerY[i]))
   }
   context.closePath()
   context.fill()

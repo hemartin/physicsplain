@@ -148,3 +148,45 @@ test('body without finalize() turns like a finalized body with default values', 
   assert.deepEqual(body.cornerX, finalized.cornerX)
   assert.deepEqual(body.cornerY, finalized.cornerY)
 })
+
+test('interpolated origin, angle and corners lie between the last two steps', () => {
+  const body = new Body(1).setOrigin(1, 2).setAngle(0.5).setVelocity(1, -2).setAngularVelocity(10).finalize()
+  const cornerX = [...body.cornerX]
+  const cornerY = [...body.cornerY]
+  body.advance(0.01)
+  const close = (a, b) => Math.abs(a - b) < 1e-12
+
+  const start = body.interpolatedOrigin(0)
+  const half = body.interpolatedOrigin(0.5)
+  const end = body.interpolatedOrigin(1)
+  assert.deepEqual([start.x, start.y], [1, 2])
+  assert.ok(close(half.x, 1.005) && close(half.y, 1.99), `half ${half}`)
+  assert.deepEqual([end.x, end.y], [body.origin.x, body.origin.y])
+
+  assert.equal(body.interpolatedAngle(0), 0.5)
+  assert.ok(close(body.interpolatedAngle(0.5), 0.55))
+  assert.equal(body.interpolatedAngle(1), body.angle)
+
+  const before = body.interpolatedCorners(0)
+  const after = body.interpolatedCorners(1)
+  for (let i = 0; i < 4; i++) {
+    assert.ok(close(before.cornerX[i], cornerX[i]) && close(before.cornerY[i], cornerY[i]), `corner ${i} before`)
+    assert.ok(close(after.cornerX[i], body.cornerX[i]) && close(after.cornerY[i], body.cornerY[i]), `corner ${i} after`)
+  }
+})
+
+test('interpolated angle turns the short way across PI', () => {
+  const body = new Body(1).setAngle(Math.PI - 0.05).setAngularVelocity(10).finalize()
+  body.advance(0.01)
+  // angle wrapped from PI - 0.05 to -PI + 0.05, half way is PI
+  assert.ok(body.angle < 0, `angle ${body.angle}`)
+  assert.ok(Math.abs(Math.cos(body.interpolatedAngle(0.5)) + 1) < 1e-12, `angle ${body.interpolatedAngle(0.5)}`)
+})
+
+test('setOrigin and setAngle move a body without drawing it moving there', () => {
+  const body = new Body(1).setVelocity(1, 0).finalize()
+  body.advance(0.01)
+  body.setOrigin(5, 5).setAngle(1)
+  const origin = body.interpolatedOrigin(0)
+  assert.deepEqual([origin.x, origin.y, body.interpolatedAngle(0)], [5, 5, 1])
+})
