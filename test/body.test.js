@@ -44,7 +44,7 @@ test('body accelerates towards its target and ignores force', () => {
 test('body stops accelerating after unsetTarget', () => {
   const body = new Body(1).setTarget(1, 0).finalize()
   body.applyForces(0.01)
-  body.unsetTarget()
+  assert.equal(body.unsetTarget(), body)
   assert.equal(body.hasTarget(), false)
   const vx = body.velocity.x
   body.applyForces(0.01)
@@ -83,7 +83,7 @@ test('target-angle steering does not turn when target points the same way', () =
 
 test('body stops turning after unsetTargetAngle', () => {
   const body = new Body(1).setTargetAngle(1).finalize()
-  body.unsetTargetAngle()
+  assert.equal(body.unsetTargetAngle(), body)
   assert.equal(body.hasTargetAngle(), false)
   body.applyForces(0.01)
   assert.equal(body.angularVelocity, 0)

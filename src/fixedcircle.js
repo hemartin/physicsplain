@@ -1,5 +1,6 @@
 import { Collision } from './collision.js'
 import { CollisionPoint } from './collisionpoint.js'
+import { FixedEntity } from './fixedentity.js'
 import { Vector } from './vector.js'
 
 /**
@@ -7,13 +8,10 @@ import { Vector } from './vector.js'
  *
  * @author Martin Hentschel
  */
-export class FixedCircle {
+export class FixedCircle extends FixedEntity {
   constructor (id, origin, radius) {
-    this.id = id
-    this.origin = origin
+    super(id, origin)
     this.radius = radius
-    this.velocity = new Vector(0, 0)
-    this.angularVelocity = 0
   }
 
   collide (collidingBody, timestep, restitution) {
@@ -128,20 +126,4 @@ export class FixedCircle {
     }
     return collision
   }
-
-  // this is a fixed entity
-  invertedMass () {
-    return 0
-  }
-
-  // this is a fixed entity
-  invertedInertia () {
-    return 0
-  }
-
-  // fixed entity has no velocity
-  addVelocity (velocity) {}
-
-  // fixed entity has no angular velocity
-  addAngularVelocity (angularVelocity) {}
 }

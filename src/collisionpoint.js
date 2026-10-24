@@ -49,13 +49,18 @@ export class CollisionPoint {
     cp1 *= cp1
     let cp2 = Vector.cross(r2X, r2Y, this.normalX, this.normalY)
     cp2 *= cp2
-    return (
-      1 /
-      (this.collidingEntity.invertedMass() +
-        this.impactedEntity.invertedMass() +
-        cp1 * this.collidingEntity.invertedInertia() +
-        cp2 * this.impactedEntity.invertedInertia())
-    )
+    const invertedNormalMass =
+      this.collidingEntity.invertedMass() +
+      this.impactedEntity.invertedMass() +
+      cp1 * this.collidingEntity.invertedInertia() +
+      cp2 * this.impactedEntity.invertedInertia()
+
+    // two entities with infinite mass, e.g. fixed bodies in the list of
+    // moving bodies, cannot push each other
+    if (invertedNormalMass === 0) {
+      return 0
+    }
+    return 1 / invertedNormalMass
   }
 
   /**

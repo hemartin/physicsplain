@@ -1,5 +1,6 @@
 import { Collision } from './collision.js'
 import { CollisionPoint } from './collisionpoint.js'
+import { FixedEntity } from './fixedentity.js'
 import { Vector } from './vector.js'
 
 /**
@@ -7,7 +8,7 @@ import { Vector } from './vector.js'
  *
  * @author Martin Hentschel
  */
-export class FixedLine {
+export class FixedLine extends FixedEntity {
   /**
    * Constructs a new fixed line.
    *
@@ -16,8 +17,7 @@ export class FixedLine {
    * @param {Vector} end end coordinate
    */
   constructor (id, start, end) {
-    this.id = id
-    this.origin = start
+    super(id, start)
     this.start = start
     this.end = end
     const diffX = end.x - start.x
@@ -25,8 +25,6 @@ export class FixedLine {
     this.angle = Vector.angle(diffX, diffY)
     this.length = Vector.length(diffX, diffY)
     this.normal = new Vector(-diffY, diffX).scale(1 / this.length)
-    this.velocity = new Vector(0, 0)
-    this.angularVelocity = 0
   }
 
   collide (collidingBody, timestep, restitution) {
@@ -139,20 +137,4 @@ export class FixedLine {
       overlaps: leftOf && rightOf
     }
   }
-
-  // this is a fixed entity
-  invertedMass () {
-    return 0
-  }
-
-  // this is a fixed entity
-  invertedInertia () {
-    return 0
-  }
-
-  // fixed entity has no velocity
-  addVelocity (velocity) {}
-
-  // fixed entity has no angular velocity
-  addAngularVelocity (angularVelocity) {}
 }

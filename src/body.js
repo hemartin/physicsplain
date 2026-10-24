@@ -125,6 +125,7 @@ export class Body {
 
   unsetTarget () {
     this.targetSet = false
+    return this
   }
 
   setTargetAngle (a) {
@@ -139,6 +140,7 @@ export class Body {
 
   unsetTargetAngle () {
     this.targetAngleSet = false
+    return this
   }
 
   advance (timestep) {
