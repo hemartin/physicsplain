@@ -54,6 +54,32 @@ export class CollisionPoint {
     )
   }
 
+  /**
+   * @returns relative velocity of colliding entity to impacted entity at
+   * contact point along normal, negative if entities move into each other
+   */
+  getNormalVelocity () {
+    const v1 = this.collidingEntity.velocity
+    const w1 = this.collidingEntity.angularVelocity
+    const v2 = this.impactedEntity.velocity
+    const w2 = this.impactedEntity.angularVelocity
+
+    // Vector r1 = Vector.substract(contactPoint, collidingEntity.getOrigin())
+    const ceo = this.collidingEntity.origin
+    const r1X = this.contactPointX - ceo.x
+    const r1Y = this.contactPointY - ceo.y
+
+    // Vector r2 = Vector.substract(contactPoint, impactedEntity.getOrigin())
+    const ieo = this.impactedEntity.origin
+    const r2X = this.contactPointX - ieo.x
+    const r2Y = this.contactPointY - ieo.y
+
+    // Vector delta = v1 + cross(w1, r1) - v2 - cross(w2, r2)
+    const deltaX = v1.x - w1 * r1Y - v2.x + w2 * r2Y
+    const deltaY = v1.y + w1 * r1X - v2.y - w2 * r2X
+    return Vector.dot(deltaX, deltaY, this.normalX, this.normalY)
+  }
+
   addTempVelocities (v1X, v1Y, w1, v2X, v2Y, w2) {
     this.nv1.x += v1X
     this.nv1.y += v1Y
