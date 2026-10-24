@@ -17,6 +17,25 @@ test('body falling onto the line bounces back up', () => {
   assert.ok(Math.min(...body.cornerY) > -0.02, `bottom ${Math.min(...body.cornerY)}`)
 })
 
+test('body touching the line from above collides', () => {
+  const body = new Body(2).setOrigin(0.5, 0.049).finalize()
+  const collision = line().collide(body, 0.01, 1)
+  assert.notEqual(collision, null)
+  assert.equal(collision.collisionPoints.length, 2)
+})
+
+test('fast body that passed the line in one step bounces back', () => {
+  // moves 0.15 per step: from fully above to fully below the line
+  const body = new Body(2).setOrigin(0.5, 0.07).setVelocity(0, -15).finalize()
+  body.lateralFriction = 0
+  body.rotationalFriction = 0
+  const state = new TestState([body], [line()])
+  state.advanceByTimestep(0.01)
+  assert.ok(Math.max(...body.cornerY) < 0, `top ${Math.max(...body.cornerY)}`)
+  state.advanceByTimestep(0.01)
+  assert.ok(body.velocity.y > 0, `vy ${body.velocity.y}`)
+})
+
 test('body crossing the line collides', () => {
   const body = new Body(2).setOrigin(0.5, 0).finalize()
   const collision = line().collide(body, 0.01, 1)
@@ -26,15 +45,22 @@ test('body crossing the line collides', () => {
 
 test('overlaps reports a body crossing the line', () => {
   const body = new Body(2).setOrigin(0.5, 0).finalize()
-  assert.equal(line().overlaps(body).overlaps, true)
+  assert.equal(line().overlaps(body), true)
 })
 
-test('body far below the line does not collide', { todo: 'issue #6' }, () => {
+test('overlapInfo reports on which side of the line a body is', () => {
+  const crossing = new Body(2).setOrigin(0.5, 0).finalize()
+  assert.deepEqual(line().overlapInfo(crossing), { leftOf: true, rightOf: true, overlaps: true })
+  const above = new Body(2).setOrigin(0.5, 0.5).finalize()
+  assert.deepEqual(line().overlapInfo(above), { leftOf: true, rightOf: false, overlaps: false })
+})
+
+test('body far below the line does not collide', () => {
   const body = new Body(2).setOrigin(0.5, -5).setVelocity(0, -1).finalize()
   assert.equal(line().collide(body, 0.01, 1), null)
 })
 
-test('overlaps is falsy for a body far from the line', { todo: 'issue #11' }, () => {
+test('overlaps is falsy for a body far from the line', () => {
   const body = new Body(2).setOrigin(5, 5).finalize()
   assert.ok(!line().overlaps(body))
 })

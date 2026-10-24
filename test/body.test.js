@@ -14,6 +14,15 @@ test('advance moves body by velocity', () => {
   assert.deepEqual([body.origin.x, body.origin.y], [0.5, -1])
 })
 
+test('angle wraps to [-PI, PI] when spinning clockwise', () => {
+  const body = new Body(1).setAngularVelocity(-10).finalize()
+  for (let i = 0; i < 100; i++) {
+    body.advance(0.01)
+  }
+  // -10 rad is the same direction as -10 + 4PI
+  assert.ok(Math.abs(body.angle - (-10 + 4 * Math.PI)) < 1e-9, `angle ${body.angle}`)
+})
+
 test('fixed body has infinite mass', () => {
   const body = new FixedBody(1).finalize()
   assert.equal(body.invertedMass(), 0)
@@ -50,6 +59,28 @@ test('body turns towards its target angle', () => {
   assert.ok(body.angularVelocity > 0, `angularVelocity ${body.angularVelocity}`)
 })
 
+test('target-angle steering turns the short way after several turns', () => {
+  // angle 4PI - 0.1 points the same way as -0.1, so target 0 is 0.1 rad counter-clockwise
+  const body = new Body(1).setAngle(4 * Math.PI - 0.1).finalize()
+  body.setTargetAngle(0)
+  body.applyForces(0.01)
+  assert.ok(body.angularVelocity > 0, `angularVelocity ${body.angularVelocity}`)
+})
+
+test('target-angle steering turns when target is exactly opposite', () => {
+  const body = new Body(1).finalize()
+  body.setTargetAngle(Math.PI)
+  body.applyForces(0.01)
+  assert.ok(Math.abs(body.angularVelocity) > 0, `angularVelocity ${body.angularVelocity}`)
+})
+
+test('target-angle steering does not turn when target points the same way', () => {
+  const body = new Body(1).setAngle(-Math.PI / 2).finalize()
+  body.setTargetAngle(3 * Math.PI / 2)
+  body.applyForces(0.01)
+  assert.equal(body.angularVelocity, 0)
+})
+
 test('body stops turning after unsetTargetAngle', () => {
   const body = new Body(1).setTargetAngle(1).finalize()
   body.unsetTargetAngle()
@@ -58,7 +89,7 @@ test('body stops turning after unsetTargetAngle', () => {
   assert.equal(body.angularVelocity, 0)
 })
 
-test('angle wraps to [-PI, PI]', { todo: 'issue #4' }, () => {
+test('angle wraps to [-PI, PI]', () => {
   const body = new Body(1).setAngularVelocity(10).finalize()
   for (let i = 0; i < 100; i++) {
     body.advance(0.01)
@@ -66,7 +97,13 @@ test('angle wraps to [-PI, PI]', { todo: 'issue #4' }, () => {
   assert.ok(Math.abs(body.angle) <= Math.PI, `angle ${body.angle}`)
 })
 
-test('target-angle steering turns the short way', { todo: 'issue #5' }, () => {
+test('angle wraps after more than one turn in a single step', () => {
+  const body = new Body(1).setAngularVelocity(100).finalize()
+  body.advance(0.1)
+  assert.ok(Math.abs(body.angle - (10 - 4 * Math.PI)) < 1e-12, `angle ${body.angle}`)
+})
+
+test('target-angle steering turns the short way', () => {
   // target 3PI/2 points the same way as -PI/2, which is 0.01 rad clockwise
   const body = new Body(1).setAngle(-Math.PI / 2 + 0.01).finalize()
   body.setTargetAngle(3 * Math.PI / 2)
@@ -74,9 +111,19 @@ test('target-angle steering turns the short way', { todo: 'issue #5' }, () => {
   assert.ok(body.angularVelocity < 0, `angularVelocity ${body.angularVelocity}`)
 })
 
-test('body without finalize() has finite inertia', { todo: 'issue #8' }, () => {
+test('body without finalize() has finite inertia', () => {
   const body = new Body(1).setOrigin(0, 0).setAngularForce(1)
   body.applyForces(0.01)
   body.advance(0.01)
   assert.ok(Number.isFinite(body.angularVelocity), `angularVelocity ${body.angularVelocity}`)
+})
+
+test('body without finalize() turns like a finalized body with default values', () => {
+  const body = new Body(1).setAngularForce(1)
+  const finalized = new Body(2).setAngularForce(1).finalize()
+  body.applyForces(0.01)
+  finalized.applyForces(0.01)
+  assert.equal(body.angularVelocity, finalized.angularVelocity)
+  assert.deepEqual(body.cornerX, finalized.cornerX)
+  assert.deepEqual(body.cornerY, finalized.cornerY)
 })

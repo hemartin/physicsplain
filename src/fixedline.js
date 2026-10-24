@@ -30,6 +30,17 @@ export class FixedLine {
   }
 
   collide (collidingBody, timestep, restitution) {
+    // ignore bodies behind this line, unless their origin crossed the line
+    // during the last step (fast bodies)
+    const origin = collidingBody.origin
+    const velocity = collidingBody.velocity
+    const n = this.normal
+    const originY = Vector.dot(origin.x - this.start.x, origin.y - this.start.y, n.x, n.y)
+    const previousOriginY = originY - Vector.dot(velocity.x, velocity.y, n.x, n.y) * timestep
+    if (originY < 0 && previousOriginY < 0) {
+      return null
+    }
+
     let collision = null
     for (let corner = 0; corner < 4; corner++) {
       // Vector vertex = body.vertex(corner);
@@ -68,17 +79,31 @@ export class FixedLine {
   }
 
   /**
-   * Returns true if colliding body overlaps with this line. Also returns
-   * leftOf and rightOf properties. LeftOf is defined as the x coordinate
+   * Returns true if colliding body overlaps with this line, i.e. at least
+   * one corner is leftOf and at least one corner is rightOf this line (see
+   * overlapInfo()).
+   *
+   * @param {Body} collidingBody colliding body
+   * @returns {Boolean} true if colliding body overlaps with this line
+   */
+  overlaps (collidingBody) {
+    return this.overlapInfo(collidingBody).overlaps
+  }
+
+  /**
+   * Returns leftOf, rightOf and overlaps properties of colliding body
+   * relative to this line. LeftOf is defined as the x coordinate
    * of at least one corner of the colliding body being within bounds of
    * this line and the y coordinate of the corner being above this line.
    * The line and body are rotated for the line to be horizontal to
    * determine leftOf. RightOf is defined just as leftOf but with the
-   * y coordinate being below this line.
+   * y coordinate being below this line. Overlaps is leftOf && rightOf.
    *
    * @param {Body} collidingBody colliding body
+   * @returns {Object} object with Boolean properties leftOf, rightOf and
+   * overlaps
    */
-  overlaps (collidingBody) {
+  overlapInfo (collidingBody) {
     // leftOf and rightOf remember if at least one corner of
     // collidingBody is left of (or rigth of) line
     let leftOf = false

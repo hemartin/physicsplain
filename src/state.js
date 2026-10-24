@@ -43,7 +43,8 @@ export class State {
    * physics consistent even if application is replayed at different
    * frames per second later.
    *
-   * @param {Number} fixedTimestep fixed timestep
+   * @param {Number} fixedTimestep fixed timestep in seconds (0.01), the
+   * same timestep used to integrate bodies
    */
   postStep (fixedTimestep) {}
 
@@ -71,7 +72,9 @@ export class State {
   }
 
   /**
-   * Advances bodies given current timestamp.
+   * Advances bodies given current timestamp. Elapsed time since the last
+   * call is capped at 250 ms, so physics pauses rather than catching up
+   * after long gaps (e.g. a hidden browser tab).
    *
    * @param {Number} now current timestamp in ms
    */
@@ -87,7 +90,8 @@ export class State {
     if (this.previous === 0) {
       this.previous = now
     }
-    let timestep = now - this.previous + this.remainder
+    // cap elapsed time (e.g. after the tab was hidden) to avoid freezing
+    let timestep = Math.min(now - this.previous, 250) + this.remainder
 
     // move physics forward in fixed intervals
     while (timestep > fixedTimestep) {
@@ -95,7 +99,7 @@ export class State {
       timestep -= fixedTimestep
 
       // call callback, lets application update physics (e.g. targets)
-      this.postStep(fixedTimestep)
+      this.postStep(fixedTimestep / 1000)
     }
     this.previous = now
     this.remainder = timestep
