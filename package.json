@@ -27,7 +27,8 @@
   "scripts": {
     "build": "rollup -c",
     "lint": "eslint .",
-    "test": "node --test \"test/**/*.test.js\""
+    "test": "node --test \"test/**/*.test.js\"",
+    "test:coverage": "node --test --experimental-test-coverage --test-coverage-include=\"src/**\" \"test/**/*.test.js\""
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^1.0.2",
