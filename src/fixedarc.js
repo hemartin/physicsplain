@@ -6,7 +6,9 @@ import { Vector } from './vector.js'
  * Fixed arc at given origin and radius. Start angle and end angle define
  * the two points where the arg starts and ends on the unit circle. The
  * right most point of the circle is 0. The top is PI/2. The left most point
- * is PI. Width denotes the "thickness" of the arc.
+ * is PI. Width denotes the "thickness" of the arc. The arc runs counter-
+ * clockwise from start angle to end angle (both inclusive) and may cross
+ * angle 0, e.g. from 3PI/2 to PI/2 or from -PI/4 to PI/4.
  *
  * @author Martin Hentschel
  */
@@ -23,6 +25,12 @@ export class FixedArc {
   }
 
   collide (collidingBody, timestep, restitution) {
+    // angular span of arc, counter-clockwise from start angle (may cross 0)
+    let span = this.endAngle - this.startAngle
+    if (span < 0) {
+      span += 2 * Math.PI
+    }
+
     let collision = null
     for (let corner = 0; corner < 4; corner++) {
       // Vector vertex = body.vertex(i);
@@ -31,12 +39,16 @@ export class FixedArc {
       const diffX = vertexX - this.origin.x
       const diffY = vertexY - this.origin.y
       const distance = Vector.length(diffX, diffY)
-      const angle = Vector.angle(diffX, diffY)
+
+      // angle of vertex relative to start angle in [0, 2PI)
+      let angle = (Vector.angle(diffX, diffY) - this.startAngle) % (2 * Math.PI)
+      if (angle < 0) {
+        angle += 2 * Math.PI
+      }
       if (
         distance >= this.radius &&
         distance < this.radius + this.width &&
-        angle > this.startAngle &&
-        angle < this.endAngle
+        angle <= span
       ) {
         if (collision === null) {
           collision = new Collision(restitution)
