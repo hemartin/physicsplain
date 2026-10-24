@@ -12,6 +12,15 @@ test('advance runs fixed 10 ms steps and keeps the remainder', () => {
   assert.equal(steps * 10 + state.remainder, 105)
 })
 
+test('advance runs all steps of a slow frame below the cap', () => {
+  const state = new TestState()
+  let steps = 0
+  state.postStep = () => steps++
+  state.advance(1000)
+  state.advance(1200)
+  assert.equal(steps * 10 + state.remainder, 200)
+})
+
 test('collide finds two overlapping bodies', () => {
   const state = new TestState([
     new Body(1).setOrigin(0, 0).finalize(),
@@ -20,7 +29,7 @@ test('collide finds two overlapping bodies', () => {
   assert.equal(state.collide(0.01).length, 1)
 })
 
-test('advance caps elapsed time after a long pause', { todo: 'issue #9' }, () => {
+test('advance caps elapsed time after a long pause', () => {
   const state = new TestState()
   let steps = 0
   state.postStep = () => steps++
