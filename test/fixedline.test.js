@@ -77,7 +77,7 @@ test('corner just past the end of the line collides, body beyond the end does no
   assert.equal(line().collide(new Body(2).setOrigin(1.2, -0.01).finalize(), 0.01, 1), null)
 })
 
-test('fast body crossing the line far from its rectangle still collides', () => {
+test('fast body that ended up far behind the line still collides', () => {
   // origin 0.3 behind the line after moving 0.4 in one step
   const body = new Body(2).setOrigin(0.5, -0.3).setVelocity(0, -40).finalize()
   assert.notEqual(line().collide(body, 0.01, 1), null)
