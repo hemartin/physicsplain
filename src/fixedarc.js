@@ -1,3 +1,4 @@
+import { boundingMargin } from './body.js'
 import { Collision } from './collision.js'
 import { CollisionPoint } from './collisionpoint.js'
 import { FixedEntity } from './fixedentity.js'
@@ -23,6 +24,19 @@ export class FixedArc extends FixedEntity {
   }
 
   collide (collidingBody, timestep, restitution) {
+    // ignore bodies too far inside or outside the arc's ring to touch it
+    const distance = Vector.length(
+      collidingBody.origin.x - this.origin.x,
+      collidingBody.origin.y - this.origin.y
+    )
+    const boundingRadius = collidingBody.boundingRadius + boundingMargin
+    if (
+      distance > this.radius + this.width + boundingRadius ||
+      distance < this.radius - boundingRadius
+    ) {
+      return null
+    }
+
     // angular span of arc, counter-clockwise from start angle (may cross 0)
     let span = this.endAngle - this.startAngle
     if (span < 0) {

@@ -1,6 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { Body, FixedBody, Vector } from '../src/physicsplain.js'
+import { diamond, diamondRadius } from './helpers.js'
 
 test('finalize computes corners of axis-aligned body', () => {
   const body = new Body(1).setOrigin(1, 2).setDimension(0.4, 0.2).finalize()
@@ -147,6 +148,22 @@ test('body without finalize() turns like a finalized body with default values', 
   assert.equal(body.angularVelocity, finalized.angularVelocity)
   assert.deepEqual(body.cornerX, finalized.cornerX)
   assert.deepEqual(body.cornerY, finalized.cornerY)
+})
+
+test('finalize computes the bounding radius, half the diagonal', () => {
+  assert.equal(new Body(1).setDimension(0.6, 0.8).finalize().boundingRadius, 0.5)
+})
+
+test('edgeNormal points out of the body', () => {
+  const body = new Body(1).setDimension(0.4, 0.2).finalize()
+  const normals = [0, 1, 2, 3].map(edge => body.edgeNormal(edge)).map(n => [n.x, n.y].map(c => +c.toFixed(9) + 0))
+  assert.deepEqual(normals, [[0, 1], [-1, 0], [0, -1], [1, 0]])
+})
+
+test('bodies whose corners just touch collide, bodies just apart do not', () => {
+  const body = diamond(0, 0)
+  assert.notEqual(body.collide(diamond(2 * diamondRadius - 1e-6, 0), 0.01, 1), null)
+  assert.equal(body.collide(diamond(2 * diamondRadius + 1e-3, 0), 0.01, 1), null)
 })
 
 test('interpolated origin, angle and corners lie between the last two steps', () => {

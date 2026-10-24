@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { Body, FixedArc, Vector } from '../src/physicsplain.js'
-import { TestState } from './helpers.js'
+import { TestState, diamond, diamondRadius } from './helpers.js'
 
 // body 1.1 units from the arc's origin, in direction angle
 const bodyAt = (angle) => new Body(2)
@@ -61,4 +61,13 @@ test('arc end angle is inclusive', () => {
   // one corner at exactly (0, 1.1), i.e. angle PI/2, the others outside the arc
   const body = new Body(2).setOrigin(-0.05, 1.15).finalize()
   assert.equal(arc.collide(body, 0.01, 1).collisionPoints.length, 1)
+})
+
+test('corner just reaching into the arc from inside or outside collides', () => {
+  // ring from radius 1 to 1.2 around the x axis
+  const arc = new FixedArc(1, new Vector(0, 0), 1, 0.2, -Math.PI / 4, Math.PI / 4)
+  assert.notEqual(arc.collide(diamond(1 - diamondRadius + 1e-6, 0), 0.01, 1), null)
+  assert.equal(arc.collide(diamond(1 - diamondRadius - 1e-3, 0), 0.01, 1), null)
+  assert.notEqual(arc.collide(diamond(1.2 + diamondRadius - 1e-6, 0), 0.01, 1), null)
+  assert.equal(arc.collide(diamond(1.2 + diamondRadius + 1e-3, 0), 0.01, 1), null)
 })

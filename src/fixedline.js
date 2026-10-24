@@ -25,6 +25,10 @@ export class FixedLine extends FixedEntity {
     this.angle = Vector.angle(diffX, diffY)
     this.length = Vector.length(diffX, diffY)
     this.normal = new Vector(-diffY, diffX).scale(1 / this.length)
+
+    // rotation by -angle into this line's frame (line along the x axis)
+    this.cos = Math.cos(-this.angle)
+    this.sin = Math.sin(-this.angle)
   }
 
   collide (collidingBody, timestep, restitution) {
@@ -51,10 +55,8 @@ export class FixedLine extends FixedEntity {
       const qY = vertexY - this.start.y
 
       // Vector t = q.rotate(-angle)
-      const cos = Math.cos(-this.angle)
-      const sin = Math.sin(-this.angle)
-      const tX = qX * cos - qY * sin
-      const tY = qX * sin + qY * cos
+      const tX = qX * this.cos - qY * this.sin
+      const tY = qX * this.sin + qY * this.cos
 
       if (tX >= 0 && tX <= this.length && tY < 0) {
         if (collision === null) {
@@ -118,10 +120,8 @@ export class FixedLine extends FixedEntity {
       const qY = vertexY - this.start.y
 
       // Vector t = q.rotate(-angle)
-      const cos = Math.cos(-this.angle)
-      const sin = Math.sin(-this.angle)
-      const tX = qX * cos - qY * sin
-      const tY = qX * sin + qY * cos
+      const tX = qX * this.cos - qY * this.sin
+      const tY = qX * this.sin + qY * this.cos
 
       if (tX >= 0 && tX <= this.length) {
         leftOf = leftOf || tY >= 0

@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { Body, FixedLine, Vector } from '../src/physicsplain.js'
-import { TestState } from './helpers.js'
+import { TestState, diamond, diamondRadius } from './helpers.js'
 
 const line = () => new FixedLine(1, new Vector(0, 0), new Vector(1, 0))
 
@@ -63,4 +63,39 @@ test('body far below the line does not collide', () => {
 test('overlaps is falsy for a body far from the line', () => {
   const body = new Body(2).setOrigin(5, 5).finalize()
   assert.ok(!line().overlaps(body))
+})
+
+test('corner just reaching below the line collides', () => {
+  assert.notEqual(line().collide(diamond(0.5, diamondRadius - 1e-6), 0.01, 1), null)
+  assert.equal(line().collide(diamond(0.5, diamondRadius + 1e-3), 0.01, 1), null)
+})
+
+test('corner just past the end of the line collides, body beyond the end does not', () => {
+  // line() runs from (0, 0) to (1, 0); bottom right corner 0.001 past the start
+  assert.notEqual(line().collide(new Body(2).setOrigin(-0.049, 0.04).finalize(), 0.01, 1), null)
+  assert.equal(line().collide(new Body(2).setOrigin(-0.051, 0.04).finalize(), 0.01, 1), null)
+  assert.equal(line().collide(new Body(2).setOrigin(1.2, -0.01).finalize(), 0.01, 1), null)
+})
+
+test('fast body that ended up far behind the line still collides', () => {
+  // origin 0.3 behind the line after moving 0.4 in one step
+  const body = new Body(2).setOrigin(0.5, -0.3).setVelocity(0, -40).finalize()
+  assert.notEqual(line().collide(body, 0.01, 1), null)
+})
+
+test('corner just past either end of a diagonal line collides', () => {
+  // line from (0, 0) to (1, 1); box turned along it, 0.04 in front of it
+  const diagonal = new FixedLine(1, new Vector(0, 0), new Vector(1, 1))
+  const along = new Vector(Math.SQRT1_2, Math.SQRT1_2)
+  const normal = diagonal.normal
+  const boxAt = (x) => new Body(2)
+    .setOrigin(along.x * x + normal.x * 0.04, along.y * x + normal.y * 0.04)
+    .setAngle(Math.PI / 4)
+    .finalize()
+  const length = Math.SQRT2
+  // bottom corners are 0.05 from origin along the line, 0.01 behind it
+  assert.notEqual(diagonal.collide(boxAt(-0.049), 0.01, 1), null)
+  assert.equal(diagonal.collide(boxAt(-0.051), 0.01, 1), null)
+  assert.notEqual(diagonal.collide(boxAt(length + 0.049), 0.01, 1), null)
+  assert.equal(diagonal.collide(boxAt(length + 0.051), 0.01, 1), null)
 })
