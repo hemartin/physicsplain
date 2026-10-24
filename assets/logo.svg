@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44" width="44" height="44">
+  <style>
+    .ground { fill: #0b3536; }
+    @media (prefers-color-scheme: dark) {
+      .ground { fill: #e5e7de; }
+    }
+  </style>
+  <rect class="ground" x="2" y="36" width="40" height="6" rx="1"/>
+  <rect x="6" y="20" width="16" height="16" rx="1" fill="#0098d8"/>
+  <rect x="22" y="14" width="14" height="14" rx="1" fill="#f54123" transform="rotate(24 29 21)"/>
+</svg>

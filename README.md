@@ -1,4 +1,4 @@
-# physicsplain &ndash; 2D physics in JavaScript
+# <img src="assets/logo.svg" alt="" width="40" height="40"> physicsplain &ndash; 2D physics in JavaScript
 
 physicsplain is a simple 2D physics library written in JavaScript.  The library is intended for small browser games and animations.  physicsplain is lightweight in memory footprint and code size.
 
