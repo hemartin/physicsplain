@@ -12,13 +12,6 @@ test('narrow box bounces off the floor elastically', { todo: 'issue #1' }, () =>
   assert.ok(Math.abs(box.velocity.y - 1) < 0.1, `vy ${box.velocity.y}`)
 })
 
-test('box stacked on another box does not sink into it', () => {
-  const lower = new Body(1).setOrigin(0, 0).finalize()
-  const upper = new Body(2).setOrigin(0, 0.09).setVelocity(0, -1).finalize()
-  collideAndApply(new TestState([lower, upper]))
-  assert.ok(upper.velocity.y > -0.5, `upper vy ${upper.velocity.y}`)
-})
-
 test('aligned boxes get the normal of the face they touch, from every side', () => {
   for (const [dx, dy] of [[0, 1], [-1, 0], [0, -1], [1, 0]]) {
     const impacted = new Body(1).finalize()
@@ -50,6 +43,13 @@ test('rotated box hitting the floor gets the floor normal', () => {
     }
     assert.ok(box.velocity.y > 0, `angle ${angle}: vy ${box.velocity.y}`)
   }
+})
+
+test('box stacked on another box does not sink into it', () => {
+  const lower = new Body(1).setOrigin(0, 0).finalize()
+  const upper = new Body(2).setOrigin(0, 0.09).setVelocity(0, -1).finalize()
+  collideAndApply(new TestState([lower, upper]))
+  assert.ok(upper.velocity.y > -0.5, `upper vy ${upper.velocity.y}`)
 })
 
 test('stacked boxes under gravity do not keep sinking', { todo: 'issue #3' }, () => {
