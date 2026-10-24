@@ -88,3 +88,32 @@ test('collisions merge into islands of connected bodies', () => {
   const islands = state.collide(0.01).map(c => new Set(c.collisionPoints.flatMap(cp => [cp.collidingEntity, cp.impactedEntity])).size)
   assert.deepEqual(islands.sort((a, b) => a - b), [2, 3])
 })
+
+test('postAdvance gets the time since the last step as a fraction of a step', () => {
+  const state = new TestState()
+  const alphas = []
+  state.postAdvance = (now, alpha) => alphas.push(alpha)
+  state.advance(1000)
+  state.advance(1025) // two steps, 5 ms left
+  assert.deepEqual(alphas, [0, 0.5])
+})
+
+test('interpolated bodies move smoothly at 60 Hz and 144 Hz', () => {
+  for (const hz of [60, 144]) {
+    const body = new Body(1).setVelocity(1, 0).finalize()
+    body.lateralFriction = 0
+    const state = new TestState([body])
+    const drawn = []
+    state.postAdvance = (now, alpha) => drawn.push(body.interpolatedOrigin(alpha).x)
+    for (let frame = 0; frame < 100; frame++) {
+      state.advance(1000 + frame * 1000 / hz)
+    }
+    // without interpolation, frames at 60 Hz move by 1 or 2 steps (0.01 or
+    // 0.02); skip the frames until the first step, there is nothing to
+    // interpolate from before it
+    for (let i = 4; i < drawn.length; i++) {
+      const move = drawn[i] - drawn[i - 1]
+      assert.ok(Math.abs(move - 1 / hz) < 1e-9, `${hz} Hz, frame ${i}: moved ${move}`)
+    }
+  }
+})
