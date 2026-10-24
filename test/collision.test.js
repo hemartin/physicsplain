@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { Body, FixedBody, FixedLine, Vector } from '../src/physicsplain.js'
+import { Body, FixedBody, FixedFloor, Vector } from '../src/physicsplain.js'
 import { TestState, collideAndApply } from './helpers.js'
 
 // floor with its top edge at y = 0
@@ -132,8 +132,8 @@ test('stacked boxes under gravity do not keep sinking', () => {
 })
 
 test('box pushed into the floor moves out without bouncing', () => {
-  const line = new FixedLine(100, new Vector(-1, 0), new Vector(1, 0))
-  for (const fixed of [floor(), line]) {
+  const fixedFloor = new FixedFloor(100, new Vector(-1, 0), new Vector(1, 0))
+  for (const fixed of [floor(), fixedFloor]) {
     const box = new Body(1).setOrigin(0, 0.04).setForce(0, -2).finalize()
     const state = new TestState([box], [fixed])
     state.restitution = 0

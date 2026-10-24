@@ -4,7 +4,7 @@ import {
   FixedArc,
   FixedBody,
   FixedCircle,
-  FixedLine,
+  FixedFloor,
   Vector
 } from './src/physicsplain.js'
 
@@ -235,8 +235,8 @@ class Example4 extends Example {
       new Body(2).setOrigin(-0.8, -0.35).finalize()
     ]
     this.fixedBodies = [
-      new FixedLine(3, new Vector(0.5, -1), new Vector(0.5, 1)),
-      new FixedLine(4, new Vector(-0.1, -0.6), new Vector(1, 0))
+      new FixedFloor(3, new Vector(0.5, -1), new Vector(0.5, 1)),
+      new FixedFloor(4, new Vector(-0.1, -0.6), new Vector(1, 0))
     ]
 
     // initial velocity of impacting bodies
@@ -247,10 +247,10 @@ class Example4 extends Example {
   }
 
   draw (alpha) {
-    drawLine(this.canvas, this.context, this.fixedBodies[0], 1, '#d2c4e0')
-    drawLine(this.canvas, this.context, this.fixedBodies[1], 1, '#d2c4e0')
-    drawLine(this.canvas, this.context, this.fixedBodies[0], 0.01, '#66408b')
-    drawLine(this.canvas, this.context, this.fixedBodies[1], 0.01, '#66408b')
+    drawFloor(this.canvas, this.context, this.fixedBodies[0], 1, '#d2c4e0')
+    drawFloor(this.canvas, this.context, this.fixedBodies[1], 1, '#d2c4e0')
+    drawFloor(this.canvas, this.context, this.fixedBodies[0], 0.01, '#66408b')
+    drawFloor(this.canvas, this.context, this.fixedBodies[1], 0.01, '#66408b')
     super.draw(alpha)
   }
 }
@@ -292,7 +292,7 @@ window.onload = function () {
  */
 function drawBody (body, canvas, context, colors, alpha) {
   if (!(body instanceof Body)) {
-    // circles, arcs and lines are drawn separately
+    // circles, arcs and floors are drawn separately
     return
   }
   const { cornerX, cornerY } = body.interpolatedCorners(alpha)
@@ -350,18 +350,18 @@ function drawCircles (canvas, context, wallColor, backgroundColor) {
 }
 
 /*
- * Draws line for example 4
+ * Draws floor for example 4, with the given width behind it
  */
-function drawLine (canvas, context, line, width, lineColor) {
-  const nx = line.normal.x * width
-  const ny = line.normal.y * width
+function drawFloor (canvas, context, floor, width, floorColor) {
+  const nx = floor.normal.x * width
+  const ny = floor.normal.y * width
 
-  context.fillStyle = lineColor
+  context.fillStyle = floorColor
   context.beginPath()
-  context.moveTo(tx(canvas, line.start.x), ty(canvas, line.start.y))
-  context.lineTo(tx(canvas, line.start.x - nx), ty(canvas, line.start.y - ny))
-  context.lineTo(tx(canvas, line.end.x - nx), ty(canvas, line.end.y - ny))
-  context.lineTo(tx(canvas, line.end.x), ty(canvas, line.end.y))
+  context.moveTo(tx(canvas, floor.start.x), ty(canvas, floor.start.y))
+  context.lineTo(tx(canvas, floor.start.x - nx), ty(canvas, floor.start.y - ny))
+  context.lineTo(tx(canvas, floor.end.x - nx), ty(canvas, floor.end.y - ny))
+  context.lineTo(tx(canvas, floor.end.x), ty(canvas, floor.end.y))
   context.closePath()
   context.fill()
 }
