@@ -51,11 +51,11 @@ export class Collision {
       targets[j] = Math.max(bounce, bias)
     }
 
-    // two collision points between the same entities with the same normal
-    // are solved together (block solver); solving them one after the other
-    // converges slowly if they are close together relative to the entity
-    // size, e.g. a narrow box landing on its short side, and leaves it
-    // spinning
+    // two collision points between the same entities are solved together
+    // (block solver); solving them one after the other converges slowly if
+    // they are close together relative to the entity size, e.g. a narrow box
+    // landing on its short side, and leaves it spinning; it also makes the
+    // result depend on their order, so mirrored scenes would drift apart
     const pairedWithNext = []
     for (let j = 0; j + 1 < collisionCount; j++) {
       pairedWithNext[j] =
@@ -101,21 +101,15 @@ export class Collision {
     } while (accumulatedImpulse > 0.000001 && iteration < 50)
   }
 
+  // true if both points are between the same two entities, in either role
+  // (corner of A in B and corner of B in A)
   static isPair (cp1, cp2) {
-    if (
-      cp1.collidingEntity !== cp2.collidingEntity ||
-      cp1.impactedEntity !== cp2.impactedEntity ||
-      Math.abs(cp1.normalX - cp2.normalX) > 1e-9 ||
-      Math.abs(cp1.normalY - cp2.normalY) > 1e-9
-    ) {
-      return false
-    }
-
-    // points (almost) on top of each other cannot be solved together
-    const k11 = 1 / cp1.getNormalMass()
-    const k22 = 1 / cp2.getNormalMass()
-    const k12 = cp1.getCoupling(cp2)
-    return k11 * k11 < 1000 * (k11 * k22 - k12 * k12)
+    return (
+      (cp1.collidingEntity === cp2.collidingEntity &&
+        cp1.impactedEntity === cp2.impactedEntity) ||
+      (cp1.collidingEntity === cp2.impactedEntity &&
+        cp1.impactedEntity === cp2.collidingEntity)
+    )
   }
 
   /**
@@ -132,6 +126,13 @@ export class Collision {
     const a1 = cp1.accumulatedImpulse
     const a2 = cp2.accumulatedImpulse
 
+    // points (almost) on top of each other, or pushing along (almost) the
+    // same line, cannot be solved together: solve them as one point
+    const det = k11 * k22 - k12 * k12
+    if (!(k11 * k11 < 1000 * det)) {
+      return Collision.solveMerged(cp1, cp2, k11, k22, k12, target1, target2)
+    }
+
     // normal velocity minus target after impulses x: K * x + b
     const b1 = cp1.getNormalVelocity() - target1 - (k11 * a1 + k12 * a2)
     const b2 = cp2.getNormalVelocity() - target2 - (k12 * a1 + k22 * a2)
@@ -139,7 +140,6 @@ export class Collision {
     // try both points pushing, then only one of them, then neither
     let x1 = a1
     let x2 = a2
-    const det = k11 * k22 - k12 * k12
     const both1 = -(k22 * b1 - k12 * b2) / det
     const both2 = -(k11 * b2 - k12 * b1) / det
     if (both1 >= 0 && both2 >= 0) {
@@ -161,6 +161,28 @@ export class Collision {
     cp1.applyImpulse(x1 - a1)
     cp2.applyImpulse(x2 - a2)
     return Math.abs(x1 - a1) + Math.abs(x2 - a2)
+  }
+
+  /**
+   * Solves two collision points as one: both get half of the impulse, and
+   * the mean normal velocity reaches the mean target. Unlike solving them
+   * one after the other, the result does not depend on their order.
+   *
+   * @returns sum of absolute impulse changes
+   */
+  static solveMerged (cp1, cp2, k11, k22, k12, target1, target2) {
+    // mean normal velocity change per unit impulse shared equally
+    const k = (k11 + 2 * k12 + k22) / 4
+    const a = cp1.accumulatedImpulse + cp2.accumulatedImpulse
+    const meanVelocity =
+      (cp1.getNormalVelocity() - target1 + cp2.getNormalVelocity() - target2) / 2
+    const x = Math.max(a - meanVelocity / k, 0)
+
+    cp1.accumulatedImpulse = x / 2
+    cp2.accumulatedImpulse = x / 2
+    cp1.applyImpulse((x - a) / 2)
+    cp2.applyImpulse((x - a) / 2)
+    return Math.abs(x - a)
   }
 
   static mergeCollisions (collisions) {
