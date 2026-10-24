@@ -30,12 +30,6 @@ export class FixedLine extends FixedEntity {
     // rotation by -angle into this line's frame (line along the x axis)
     this.cos = Math.cos(-this.angle)
     this.sin = Math.sin(-this.angle)
-
-    // rectangle with this line as its diagonal
-    this.minX = Math.min(start.x, end.x)
-    this.maxX = Math.max(start.x, end.x)
-    this.minY = Math.min(start.y, end.y)
-    this.maxY = Math.max(start.y, end.y)
   }
 
   collide (collidingBody, timestep, restitution) {
@@ -50,20 +44,13 @@ export class FixedLine extends FixedEntity {
       return null
     }
 
-    // ignore bodies too far from the rectangle with this line as its
-    // diagonal to touch the line; the corner of a colliding body is within
-    // the bounding radius of a point on the line, or further behind it by
-    // up to the distance moved in the last step (fast bodies)
-    const reach =
-      collidingBody.boundingRadius +
-      Vector.length(velocity.x, velocity.y) * timestep +
-      boundingMargin
-    if (
-      origin.x < this.minX - reach ||
-      origin.x > this.maxX + reach ||
-      origin.y < this.minY - reach ||
-      origin.y > this.maxY + reach
-    ) {
+    // ignore bodies too far in front of this line or beyond its ends to
+    // touch it, in this line's frame: a colliding corner is below the line
+    // and between its ends, and within the bounding radius of origin
+    const radius = collidingBody.boundingRadius + boundingMargin
+    const originX =
+      (origin.x - this.start.x) * this.cos - (origin.y - this.start.y) * this.sin
+    if (originY > radius || originX < -radius || originX > this.length + radius) {
       return null
     }
 

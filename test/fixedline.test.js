@@ -82,3 +82,20 @@ test('fast body crossing the line far from its rectangle still collides', () => 
   const body = new Body(2).setOrigin(0.5, -0.3).setVelocity(0, -40).finalize()
   assert.notEqual(line().collide(body, 0.01, 1), null)
 })
+
+test('corner just past either end of a diagonal line collides', () => {
+  // line from (0, 0) to (1, 1); box turned along it, 0.04 in front of it
+  const diagonal = new FixedLine(1, new Vector(0, 0), new Vector(1, 1))
+  const along = new Vector(Math.SQRT1_2, Math.SQRT1_2)
+  const normal = diagonal.normal
+  const boxAt = (x) => new Body(2)
+    .setOrigin(along.x * x + normal.x * 0.04, along.y * x + normal.y * 0.04)
+    .setAngle(Math.PI / 4)
+    .finalize()
+  const length = Math.SQRT2
+  // bottom corners are 0.05 from origin along the line, 0.01 behind it
+  assert.notEqual(diagonal.collide(boxAt(-0.049), 0.01, 1), null)
+  assert.equal(diagonal.collide(boxAt(-0.051), 0.01, 1), null)
+  assert.notEqual(diagonal.collide(boxAt(length + 0.049), 0.01, 1), null)
+  assert.equal(diagonal.collide(boxAt(length + 0.051), 0.01, 1), null)
+})
