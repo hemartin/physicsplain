@@ -173,8 +173,9 @@ export class Body {
     }
 
     if (this.targetAngleSet) {
-      // calculate angular force
+      // calculate angular force, turn the short way round
       let forceA = this.targetAngle - this.angle
+      forceA -= 2 * Math.PI * Math.round(forceA / (2 * Math.PI))
       if (forceA !== 0) {
         forceA = this.angleThrust * Math.sign(forceA)
         this.angularVelocity += forceA * timestep * this.invertedInertia()
