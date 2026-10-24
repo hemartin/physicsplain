@@ -58,12 +58,21 @@ test('body stops turning after unsetTargetAngle', () => {
   assert.equal(body.angularVelocity, 0)
 })
 
-test('angle wraps to [-PI, PI]', { todo: 'issue #4' }, () => {
+test('angle wraps to [-PI, PI]', () => {
   const body = new Body(1).setAngularVelocity(10).finalize()
   for (let i = 0; i < 100; i++) {
     body.advance(0.01)
   }
   assert.ok(Math.abs(body.angle) <= Math.PI, `angle ${body.angle}`)
+})
+
+test('angle wraps to [-PI, PI] when spinning clockwise', () => {
+  const body = new Body(1).setAngularVelocity(-10).finalize()
+  for (let i = 0; i < 100; i++) {
+    body.advance(0.01)
+  }
+  // -10 rad is the same direction as -10 + 4PI
+  assert.ok(Math.abs(body.angle - (-10 + 4 * Math.PI)) < 1e-9, `angle ${body.angle}`)
 })
 
 test('target-angle steering turns the short way', { todo: 'issue #5' }, () => {

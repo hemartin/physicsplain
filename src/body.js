@@ -140,10 +140,10 @@ export class Body {
     this.origin.y += this.velocity.y * timestep
 
     this.angle += this.angularVelocity * timestep
-    if (this.angle > Math.Pi) {
-      this.angle -= 2 * Math.Pi
-    } else if (this.angle < -Math.Pi) {
-      this.angle += 2 * Math.Pi
+    if (this.angle > Math.PI) {
+      this.angle -= 2 * Math.PI
+    } else if (this.angle < -Math.PI) {
+      this.angle += 2 * Math.PI
     }
 
     this.calculateCorners()
