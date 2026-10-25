@@ -35,7 +35,7 @@ Requires Node.js 22 or newer.
 All changes to `master` go through pull requests, and CI must pass before a pull request can be merged.  Each push to `master` deploys the examples to GitHub Pages.
 
 ## Known Limitations
-Currently only rectangles are supported as moving bodies. Rectangles, arcs, circles, and lines are supported as fixed bodies.
+Currently only rectangles are supported as moving bodies. Rectangles, arcs, circles, and floors are supported as fixed bodies. A floor (`FixedFloor`) is a one-sided line: bodies hit it only from its front, the left side when looking from its start to its end, and pass through it from behind.
 
 Sometimes the following issues occur:
 - Object collisions are not resolved properly, which results in objects moving into each other.

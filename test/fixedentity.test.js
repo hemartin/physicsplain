@@ -1,14 +1,14 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { FixedArc, FixedCircle, FixedLine, Vector } from '../src/physicsplain.js'
+import { FixedArc, FixedCircle, FixedFloor, Vector } from '../src/physicsplain.js'
 
 const fixedEntities = () => [
   new FixedArc(1, new Vector(0, 0), 0.5, 0.2, 0, Math.PI),
   new FixedCircle(2, new Vector(0, 0), 0.5),
-  new FixedLine(3, new Vector(0, 0), new Vector(1, 0))
+  new FixedFloor(3, new Vector(0, 0), new Vector(1, 0))
 ]
 
-test('fixed arc, circle and line have infinite mass and never move', () => {
+test('fixed arc, circle and floor have infinite mass and never move', () => {
   for (const entity of fixedEntities()) {
     const name = entity.constructor.name
     assert.equal(entity.invertedMass(), 0, name)
@@ -20,7 +20,7 @@ test('fixed arc, circle and line have infinite mass and never move', () => {
   }
 })
 
-test('fixed line has its start as origin', () => {
+test('fixed floor has its start as origin', () => {
   const start = new Vector(1, 2)
-  assert.equal(new FixedLine(1, start, new Vector(3, 2)).origin, start)
+  assert.equal(new FixedFloor(1, start, new Vector(3, 2)).origin, start)
 })

@@ -2,7 +2,7 @@ import { Vector } from './vector.js'
 
 /**
  * Base class of fixed entities that are not bodies (FixedArc, FixedCircle,
- * FixedLine). A fixed entity has infinite mass and never moves.
+ * FixedFloor). A fixed entity has infinite mass and never moves.
  *
  * @author Martin Hentschel
  */
