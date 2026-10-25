@@ -27,7 +27,7 @@ physicsplain is a set of ES modules without dependencies.  Use it in either of t
 ## Development
 Requires Node.js 22 or newer.
 - `npm ci` installs the development dependencies.
-- `npm test` runs the tests.  Tests marked as todo reproduce known bugs and do not fail the test run.
+- `npm test` runs the tests.
 - `npm run lint` checks the code style ([neostandard](https://github.com/neostandard/neostandard)).
 - `npm run test:coverage` runs the tests and prints a coverage report.
 - To run the examples locally, serve the repository root with any static web server, e.g. `npx serve`, and open `index.html`.
@@ -37,9 +37,9 @@ All changes to `master` go through pull requests, and CI must pass before a pull
 ## Known Limitations
 Currently only rectangles are supported as moving bodies. Rectangles, arcs, circles, and floors are supported as fixed bodies. A floor (`FixedFloor`) is a one-sided line: bodies hit it only from its front, the left side when looking from its start to its end, and pass through it from behind.
 
-Sometimes the following issues occur:
-- Object collisions are not resolved properly, which results in objects moving into each other.
-- Inelastic collisions and constant forces (e.g., gravity) do not go well together, which also results in object moving into each other.
+The following limitations remain:
+- Contacts have no friction, so bodies slide freely along each other and along fixed bodies. `lateralFriction` and `rotationalFriction` slow a body down like air drag, not like friction between surfaces. For example, a stack of slightly rotated boxes slides apart.
+- Collisions are checked once per step (10 ms), so a fast body can pass through a thin body without touching it. Only a `FixedFloor` pushes back bodies that crossed it during the last step.
 
 Consider using Box2D or other physics libraries if your project is impacted by these limitations.
 
