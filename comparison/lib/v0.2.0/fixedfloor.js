@@ -139,8 +139,8 @@ export class FixedFloor extends FixedEntity {
     // collidingBody overlaps with this floor if at least one corner is in
     // front of it and at least one corner is behind it
     return {
-      leftOf: leftOf,
-      rightOf: rightOf,
+      leftOf,
+      rightOf,
       overlaps: leftOf && rightOf
     }
   }
