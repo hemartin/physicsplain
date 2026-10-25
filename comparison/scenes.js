@@ -214,7 +214,7 @@ export const bugs = [
     title: 'Stacked boxes sink into each other',
     issues: [2, 3],
     prs: [26, 28],
-    repeat: 6000,
+    repeat: 3000,
     wrong: 'A corner sitting exactly on the side edge of the box below (boxes of the same width, stacked straight) made that side edge the contact edge. The contact normal pointed sideways, so nothing held the upper box up. On top of that, the penetration depth was computed but never corrected, so overlap only grew under gravity.',
     fixed: 'The contact edge is now the edge of least penetration of the colliding box, corners on a side edge no longer count as crossing it, and a small bias velocity (Baumgarte) pushes overlapping bodies apart.',
     look: 'Three towers of 2, 3, and 4 boxes drop onto the ground under gravity. Turn on “Show contacts” to see the sideways normals in v0.1.0.',
