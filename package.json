@@ -1,7 +1,7 @@
 {
   "name": "physicsplain",
   "version": "0.1.0",
-  "description": "Lightweight 2D rigid-body physics for small browser games and animations.",
+  "description": "A simple 2D physics library written in JavaScript, intended for small browser games and animations.",
   "keywords": [
     "physics",
     "2d",

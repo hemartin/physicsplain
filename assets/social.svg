@@ -9,7 +9,7 @@
   </g>
   <text x="372" y="278" font-family="DejaVu Sans Mono" font-weight="bold" font-size="104" letter-spacing="-3" fill="#0b3536">physicsplain</text>
   <text x="156" y="406" font-family="DejaVu Sans" font-size="46" fill="#0b3536">2D physics in JavaScript</text>
-  <text x="156" y="466" font-family="DejaVu Sans" font-size="30" fill="#4d6b6c">Rigid-body physics for small browser games and animations</text>
+  <text x="156" y="466" font-family="DejaVu Sans" font-size="30" fill="#4d6b6c">For small browser games and animations</text>
   <rect y="590" width="1200" height="40" fill="#0b3536"/>
   <rect y="582" width="1200" height="8" fill="#0098d8"/>
 </svg>
