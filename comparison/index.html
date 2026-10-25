@@ -26,7 +26,6 @@
                     <a href="#fixes">Fixes</a>
                     <a href="#examples">Impact on examples</a>
                     <a href="#performance">Performance</a>
-                    <a href="#next">Further improvements</a>
                 </nav>
             </header>
 
@@ -125,41 +124,6 @@
                         <button type="button" class="button" id="bench-run">Run in this browser</button>
                         <span id="bench-status" class="fine" role="status">Takes about 20–40 seconds, in a worker, so the page stays usable.</span>
                     </div>
-                </section>
-
-                <section id="next" class="section">
-                    <h2>Possible further improvements</h2>
-                    <p class="section-lede">From reading the v0.2.0 source and measuring it. Ordered by how much a game would notice.</p>
-                    <ol class="ideas">
-                        <li>
-                            <h3>Contact friction</h3>
-                            <p>Impulses act only along the contact normal, so bodies slide along each other and along fixed shapes forever; <code>lateralFriction</code> is drag, not friction. A stack of slightly rotated boxes slides apart: three boxes offset by 0.02 and turned by 0.01 rad collapsed within 6 s (measured). A tangential impulse per contact, clamped to μ times the normal impulse, is already sketched in <a href="https://github.com/hemartin/physicsplain/issues/31">#31</a>.</p>
-                        </li>
-                        <li>
-                            <h3>Warm-start the solver</h3>
-                            <p>Every step starts with all accumulated impulses at zero, so resting contacts converge from scratch each time. In the pile of 40 boxes, <code>Collision.apply()</code> takes 75 % of the step, and v0.2.0 is no faster than v0.1.0. Carrying impulses over from the previous step (matched by body pair and corner) usually cuts the iterations a lot and makes stacks steadier.</p>
-                        </li>
-                        <li>
-                            <h3>Stop fast bodies from tunneling through bodies</h3>
-                            <p>Only <code>FixedFloor</code> handles a body that crossed it within one step. A box at 12 units/s passes straight through a fixed body 0.02 thick (measured). Sub-stepping fast bodies, or a swept test of the origin like <code>FixedFloor</code> does, would catch it.</p>
-                        </li>
-                        <li>
-                            <h3>A broad phase for many bodies</h3>
-                            <p>Every pair of moving bodies is still checked, so the work grows with the square of the body count. With 200 boxes, <code>collide()</code> takes 92 % of the step even with the new bounding-circle check. A uniform grid, or sorting bodies along x and sweeping, would make it close to linear.</p>
-                        </li>
-                        <li>
-                            <h3>Let bodies at rest sleep</h3>
-                            <p>Resting bodies still go through the whole step. Contact groups are already computed with union-find; a group whose bodies barely moved for a while could sleep until something touches it.</p>
-                        </li>
-                        <li>
-                            <h3>Allocate less per step</h3>
-                            <p>Each step creates new <code>Collision</code> and <code>CollisionPoint</code> objects (two vectors each), new vectors for edge normals, and an array of moving bodies; drawing with <code>interpolatedCorners()</code> creates arrays per body per frame. Reusing these would reduce garbage-collection pauses in long-running games.</p>
-                        </li>
-                        <li>
-                            <h3>Make the hard-coded numbers settable</h3>
-                            <p>The 10 ms step, the 250 ms catch-up cap, the 50 solver iterations, and the penetration constants (0.2, 0.001, 0.005) are fixed in the code. Options on <code>State</code> would let a game trade accuracy for speed.</p>
-                        </li>
-                    </ol>
                 </section>
             </main>
 

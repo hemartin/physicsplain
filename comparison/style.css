@@ -705,42 +705,6 @@ h1 {
     margin-top: 0;
 }
 
-/* ---------- Ideas ---------- */
-
-.ideas {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
-    gap: 14px;
-    margin: 24px 0 0;
-    padding: 0;
-    list-style: none;
-    counter-reset: idea;
-}
-
-.ideas li {
-    padding: 18px 20px;
-    border-radius: var(--radius);
-    background: var(--surface);
-    box-shadow: inset 0 0 0 1px var(--line);
-    counter-increment: idea;
-}
-
-.ideas h3 {
-    font-size: 1.0625rem;
-    text-wrap: pretty;
-}
-
-.ideas h3::before {
-    content: counter(idea) ". ";
-    color: var(--muted);
-    font-variant-numeric: tabular-nums;
-}
-
-.ideas p {
-    margin-top: 6px;
-    font-size: 0.9375rem;
-}
-
 /* ---------- Footer ---------- */
 
 .footer {
