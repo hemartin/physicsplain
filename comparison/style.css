@@ -198,9 +198,9 @@ h1 {
 }
 
 .versions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px 36px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px 36px;
     margin: 24px 0 0;
 }
 
