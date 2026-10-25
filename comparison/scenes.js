@@ -223,7 +223,7 @@ export const bugs = [
       let id = 0
       for (const [x, count] of [[-0.55, 2], [0, 3], [0.55, 4]]) {
         for (let i = 0; i < count; i++) {
-          const body = new lib.Body(id++).setOrigin(x, -0.35 + i * 0.11).finalize()
+          const body = new lib.Body(id++).setOrigin(x, -0.35 + i * 0.2).finalize()
           body.setForce(0, -2)
           moving.push(body)
         }
