@@ -149,17 +149,14 @@ export class State {
   collide (timestep) {
     const collisions = []
 
-    // collide each pair of movable bodies once (by index, ids may be missing
-    // or duplicate)
+    // moving bodies once per step; collide each pair of movable bodies once
+    // (by index, ids may be missing or duplicate)
     const movingBodies = [...this.getMovingBodies()]
     for (let i = 0; i < movingBodies.length; i++) {
       const movingBody1 = movingBodies[i]
       for (let j = i + 1; j < movingBodies.length; j++) {
         const movingBody2 = movingBodies[j]
-        if (
-          this.collideBodies(movingBody1, movingBody2) &&
-          this.collideBodies(movingBody2, movingBody1)
-        ) {
+        if (this.collideBodies(movingBody1, movingBody2)) {
           const collision = movingBody1.collide(
             movingBody2,
             timestep,
@@ -174,11 +171,8 @@ export class State {
 
     // collide each movable body with all fixed bodies
     for (const fixedBody of this.getFixedBodies()) {
-      for (const movingBody of this.getMovingBodies()) {
-        if (
-          this.collideBodies(fixedBody, movingBody) &&
-          this.collideBodies(movingBody, fixedBody)
-        ) {
+      for (const movingBody of movingBodies) {
+        if (this.collideBodies(fixedBody, movingBody)) {
           const collision = fixedBody.collide(
             movingBody,
             timestep,

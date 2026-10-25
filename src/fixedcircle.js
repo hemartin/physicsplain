@@ -1,3 +1,4 @@
+import { boundingMargin } from './body.js'
 import { Collision } from './collision.js'
 import { CollisionPoint } from './collisionpoint.js'
 import { FixedEntity } from './fixedentity.js'
@@ -15,6 +16,15 @@ export class FixedCircle extends FixedEntity {
   }
 
   collide (collidingBody, timestep, restitution) {
+    // ignore bodies too far away to touch this circle
+    const distance = Vector.length(
+      collidingBody.origin.x - this.origin.x,
+      collidingBody.origin.y - this.origin.y
+    )
+    if (distance > this.radius + collidingBody.boundingRadius + boundingMargin) {
+      return null
+    }
+
     let collision = null
 
     // check if corner is inside
@@ -62,15 +72,10 @@ export class FixedCircle extends FixedEntity {
       const p2X = collidingBody.cornerX[bodyCorner2]
       const p2Y = collidingBody.cornerY[bodyCorner2]
 
-      // Vector normal = Vector.normal(p1, p2);
-      let normalX = p2X - p1X
-      let normalY = p2Y - p1Y
-      const div = 1.0 / Math.sqrt(normalX * normalX + normalY * normalY)
-      normalX *= div
-      normalY *= div
-      const tmp = normalX
-      normalX = -normalY
-      normalY = tmp
+      // inward normal of the edge
+      const edgeNormal = collidingBody.edgeNormal(edge)
+      const normalX = -edgeNormal.x
+      const normalY = -edgeNormal.y
 
       const q1X = this.origin.x
       const q1Y = this.origin.y

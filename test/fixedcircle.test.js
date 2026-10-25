@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { Body, FixedCircle, Vector } from '../src/physicsplain.js'
-import { TestState } from './helpers.js'
+import { TestState, diamond, diamondRadius } from './helpers.js'
 
 const circle = () => new FixedCircle(1, new Vector(0, 0), 0.2)
 
@@ -44,4 +44,10 @@ test('body falling onto the circle bounces back up', () => {
   }
   assert.ok(body.velocity.y > 0.5, `vy ${body.velocity.y}`)
   assert.ok(Math.min(...body.cornerY) > 0.19, `bottom ${Math.min(...body.cornerY)}`)
+})
+
+test('corner just reaching into the circle collides', () => {
+  // circle() has radius 0.2
+  assert.notEqual(circle().collide(diamond(0.2 + diamondRadius - 1e-6, 0), 0.01, 1), null)
+  assert.equal(circle().collide(diamond(0.2 + diamondRadius + 1e-3, 0), 0.01, 1), null)
 })

@@ -4,6 +4,10 @@ import { Vector } from './vector.js'
 
 export const bodyInfiniteMass = -1
 
+// margin of the bounding-circle check before colliding entities in detail,
+// larger than the error margin of corners on an edge
+export const boundingMargin = 1e-4
+
 // wraps angle to (-PI, PI], the range of Math.atan2 and Vector.angle
 const wrapAngle = (angle) => angle - 2 * Math.PI * Math.ceil(angle / (2 * Math.PI) - 0.5)
 
@@ -61,7 +65,7 @@ export class Body {
 
   /*
    * Finalizes the construction of body by calculating its inertia, inverted mass,
-   * and the location of its corners.
+   * bounding radius, and the location of its corners.
    */
   finalize () {
     this.inertia =
@@ -69,6 +73,9 @@ export class Body {
         this.dimension.y * this.dimension.y) *
         this.mass) /
       12
+
+    // radius of the circle around origin that contains all corners
+    this.boundingRadius = 0.5 * Vector.length(this.dimension.x, this.dimension.y)
     this.calculateCorners()
     return this
   }
@@ -265,6 +272,10 @@ export class Body {
     const directionY = Math.sin(this.angle)
     const directionX = Math.cos(this.angle)
 
+    // kept to rotate points into this body's frame when colliding
+    this.cos = directionX
+    this.sin = directionY
+
     // Vector tangent = Vector.tangent(direction)
     const tangentX = -directionY
     const tangentY = directionX
@@ -321,6 +332,21 @@ export class Body {
     return this.mass === bodyInfiniteMass
   }
 
+  /**
+   * @returns outward unit normal of the edge from corner edge to the next
+   * corner (0 top, 1 left, 2 bottom, 3 right for an unrotated body)
+   */
+  edgeNormal (edge) {
+    const corner1 = edge
+    const corner2 = corner1 === 3 ? 0 : corner1 + 1
+    let enX = this.cornerX[corner1] - this.cornerX[corner2]
+    let enY = this.cornerY[corner1] - this.cornerY[corner2]
+    const div = 1 / Vector.length(enX, enY)
+    enX *= div
+    enY *= div
+    return new Vector(-enY, enX)
+  }
+
   addVelocity (velocity) {
     this.velocity.add(velocity)
   }
@@ -339,6 +365,18 @@ export class Body {
    * @returns collision, or null if not colliding
    */
   collide (collidingBody, timestep, restitution) {
+    // bodies too far apart to touch
+    const distance = Vector.length(
+      collidingBody.origin.x - this.origin.x,
+      collidingBody.origin.y - this.origin.y
+    )
+    if (
+      distance >
+      this.boundingRadius + collidingBody.boundingRadius + boundingMargin
+    ) {
+      return null
+    }
+
     const collision = new Collision(restitution)
     this.collideAllCorners(collision, collidingBody, timestep)
 
@@ -353,12 +391,27 @@ export class Body {
   }
 
   collideAllCorners (collision, collidingBody, timestep) {
+    // extent of colliding body in this body's frame, so that a point
+    // sitting on a side edge (e.g. stacked aligned boxes) does not make
+    // that side edge the closest edge
+    const cos = this.cos
+    const sin = -this.sin
+    const extent = { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity }
+    for (let i = 0; i < 4; i++) {
+      const cx = collidingBody.cornerX[i] - this.origin.x
+      const cy = collidingBody.cornerY[i] - this.origin.y
+      extent.minX = Math.min(extent.minX, cx * cos - cy * sin)
+      extent.maxX = Math.max(extent.maxX, cx * cos - cy * sin)
+      extent.minY = Math.min(extent.minY, cx * sin + cy * cos)
+      extent.maxY = Math.max(extent.maxY, cx * sin + cy * cos)
+    }
+
     for (let corner = 0; corner < 4; corner++) {
-      this.collideSingleCorner(collision, collidingBody, corner, timestep)
+      this.collideSingleCorner(collision, collidingBody, corner, timestep, extent)
     }
   }
 
-  collideSingleCorner (collision, collidingBody, corner, timestep) {
+  collideSingleCorner (collision, collidingBody, corner, timestep, extent) {
     // error margin
     const eps = 1e-5
 
@@ -372,8 +425,8 @@ export class Body {
     let y = vertexY - this.origin.y
 
     // q.rotate(-angle)
-    const cos = Math.cos(-this.angle)
-    const sin = Math.sin(-this.angle)
+    const cos = this.cos
+    const sin = -this.sin
     const tx = x * cos - y * sin
     const ty = x * sin + y * cos
     x = tx
@@ -427,28 +480,12 @@ export class Body {
       let relativeMoveY = relativeVelocityY * timestep
 
       // relativeMove.rotate(-getAngle())
-      const cos1 = Math.cos(-this.angle)
-      const sin1 = Math.sin(-this.angle)
-      const tx1 = relativeMoveX * cos1 - relativeMoveY * sin1
-      const ty1 = relativeMoveX * sin1 + relativeMoveY * cos1
+      const tx1 = relativeMoveX * cos - relativeMoveY * sin
+      const ty1 = relativeMoveX * sin + relativeMoveY * cos
       relativeMoveX = tx1
       relativeMoveY = ty1
 
-      // extent of colliding body in this body's frame, so that a point
-      // sitting on a side edge (e.g. stacked aligned boxes) does not make
-      // that side edge the closest edge
-      let minX = Infinity
-      let maxX = -Infinity
-      let minY = Infinity
-      let maxY = -Infinity
-      for (let i = 0; i < 4; i++) {
-        const cx = collidingBody.cornerX[i] - this.origin.x
-        const cy = collidingBody.cornerY[i] - this.origin.y
-        minX = Math.min(minX, cx * cos - cy * sin)
-        maxX = Math.max(maxX, cx * cos - cy * sin)
-        minY = Math.min(minY, cx * sin + cy * cos)
-        maxY = Math.max(maxY, cx * sin + cy * cos)
-      }
+      const { minX, maxX, minY, maxY } = extent
 
       // get edge closest to point, i.e. edge of least penetration of
       // colliding body
@@ -518,22 +555,9 @@ export class Body {
         normalY = 0
         for (let i = 0; i < 4; i++) {
           if ((maxEdge & (1 << i)) > 0) {
-            // normal.add(edgeNormal(i))
-            const impactedCorner1 = i
-            const impactedCorner2 =
-              impactedCorner1 === 3 ? 0 : impactedCorner1 + 1
-            let enX =
-              this.cornerX[impactedCorner1] - this.cornerX[impactedCorner2]
-            let enY =
-              this.cornerY[impactedCorner1] - this.cornerY[impactedCorner2]
-            const div = 1 / Vector.length(enX, enY)
-            enX *= div
-            enY *= div
-            const tmp = enX
-            enX = -enY
-            enY = tmp
-            normalX += enX
-            normalY += enY
+            const edgeNormal = this.edgeNormal(i)
+            normalX += edgeNormal.x
+            normalY += edgeNormal.y
             count++
           }
         }
@@ -545,19 +569,9 @@ export class Body {
           normalY /= normalLen
         }
       } else {
-        // normal = edgeNormal(minEdge)
-        const impactedCorner1 = minEdge
-        const impactedCorner2 = impactedCorner1 === 3 ? 0 : impactedCorner1 + 1
-        let enX = this.cornerX[impactedCorner1] - this.cornerX[impactedCorner2]
-        let enY = this.cornerY[impactedCorner1] - this.cornerY[impactedCorner2]
-        const div = 1 / Vector.length(enX, enY)
-        enX *= div
-        enY *= div
-        const tmp = enX
-        enX = -enY
-        enY = tmp
-        normalX = enX
-        normalY = enY
+        const edgeNormal = this.edgeNormal(minEdge)
+        normalX = edgeNormal.x
+        normalY = edgeNormal.y
       }
 
       const collisionPoint = new CollisionPoint(

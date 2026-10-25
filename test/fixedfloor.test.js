@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { Body, FixedFloor, Vector } from '../src/physicsplain.js'
-import { TestState } from './helpers.js'
+import { TestState, diamond, diamondRadius } from './helpers.js'
 
 const floor = () => new FixedFloor(1, new Vector(0, 0), new Vector(1, 0))
 
@@ -83,4 +83,38 @@ test('floor running from right to left is hit from below', () => {
   assert.deepEqual([reversed.normal.x + 0, reversed.normal.y], [0, -1])
   assert.notEqual(reversed.collide(new Body(2).setOrigin(0.5, -0.04).finalize(), 0.01, 1), null)
   assert.equal(reversed.collide(new Body(2).setOrigin(0.5, 0.04).finalize(), 0.01, 1), null)
+})
+test('corner just reaching behind the floor collides', () => {
+  assert.notEqual(floor().collide(diamond(0.5, diamondRadius - 1e-6), 0.01, 1), null)
+  assert.equal(floor().collide(diamond(0.5, diamondRadius + 1e-3), 0.01, 1), null)
+})
+
+test('corner just past the end of the floor collides, body beyond the end does not', () => {
+  // floor() runs from (0, 0) to (1, 0); bottom right corner 0.001 past the start
+  assert.notEqual(floor().collide(new Body(2).setOrigin(-0.049, 0.04).finalize(), 0.01, 1), null)
+  assert.equal(floor().collide(new Body(2).setOrigin(-0.051, 0.04).finalize(), 0.01, 1), null)
+  assert.equal(floor().collide(new Body(2).setOrigin(1.2, -0.01).finalize(), 0.01, 1), null)
+})
+
+test('fast body that ended up far behind the floor still collides', () => {
+  // origin 0.3 behind the floor after moving 0.4 in one step
+  const body = new Body(2).setOrigin(0.5, -0.3).setVelocity(0, -40).finalize()
+  assert.notEqual(floor().collide(body, 0.01, 1), null)
+})
+
+test('corner just past either end of a diagonal floor collides', () => {
+  // floor from (0, 0) to (1, 1); box turned along it, 0.04 in front of it
+  const diagonal = new FixedFloor(1, new Vector(0, 0), new Vector(1, 1))
+  const along = new Vector(Math.SQRT1_2, Math.SQRT1_2)
+  const normal = diagonal.normal
+  const boxAt = (x) => new Body(2)
+    .setOrigin(along.x * x + normal.x * 0.04, along.y * x + normal.y * 0.04)
+    .setAngle(Math.PI / 4)
+    .finalize()
+  const length = Math.SQRT2
+  // bottom corners are 0.05 from origin along the floor, 0.01 behind it
+  assert.notEqual(diagonal.collide(boxAt(-0.049), 0.01, 1), null)
+  assert.equal(diagonal.collide(boxAt(-0.051), 0.01, 1), null)
+  assert.notEqual(diagonal.collide(boxAt(length + 0.049), 0.01, 1), null)
+  assert.equal(diagonal.collide(boxAt(length + 0.051), 0.01, 1), null)
 })

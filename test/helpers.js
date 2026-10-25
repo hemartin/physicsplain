@@ -1,4 +1,4 @@
-import { State } from '../src/physicsplain.js'
+import { Body, State } from '../src/physicsplain.js'
 
 /**
  * Minimal state for tests that serves bodies from two arrays.
@@ -29,3 +29,11 @@ export function collideAndApply (state, timestep = 0.01) {
   }
   return collisions
 }
+
+/**
+ * Box turned by 45 degrees at (x, y), its corners point along the x and y
+ * axes. Its corner reaches out by diamondRadius, as far as the bounding
+ * circle.
+ */
+export const diamond = (x, y) => new Body(2).setOrigin(x, y).setAngle(Math.PI / 4).finalize()
+export const diamondRadius = 0.05 * Math.SQRT2
