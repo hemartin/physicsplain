@@ -1,0 +1,91 @@
+import { boundingMargin } from './body.js'
+import { Collision } from './collision.js'
+import { CollisionPoint } from './collisionpoint.js'
+import { FixedEntity } from './fixedentity.js'
+import { Vector } from './vector.js'
+
+/**
+ * Fixed arc at given origin and radius. Start angle and end angle define
+ * the two points where the arg starts and ends on the unit circle. The
+ * right most point of the circle is 0. The top is PI/2. The left most point
+ * is PI. Width denotes the "thickness" of the arc. The arc runs counter-
+ * clockwise from start angle to end angle (both inclusive) and may cross
+ * angle 0, e.g. from 3PI/2 to PI/2 or from -PI/4 to PI/4.
+ *
+ * @author Martin Hentschel
+ */
+export class FixedArc extends FixedEntity {
+  constructor (id, origin, radius, width, startAngle, endAngle) {
+    super(id, origin)
+    this.radius = radius
+    this.width = width
+    this.startAngle = startAngle
+    this.endAngle = endAngle
+  }
+
+  collide (collidingBody, timestep, restitution) {
+    // ignore bodies too far inside or outside the arc's ring to touch it
+    const distance = Vector.length(
+      collidingBody.origin.x - this.origin.x,
+      collidingBody.origin.y - this.origin.y
+    )
+    const boundingRadius = collidingBody.boundingRadius + boundingMargin
+    if (
+      distance > this.radius + this.width + boundingRadius ||
+      distance < this.radius - boundingRadius
+    ) {
+      return null
+    }
+
+    // angular span of arc, counter-clockwise from start angle (may cross 0)
+    let span = this.endAngle - this.startAngle
+    if (span < 0) {
+      span += 2 * Math.PI
+    }
+
+    let collision = null
+    for (let corner = 0; corner < 4; corner++) {
+      // Vector vertex = body.vertex(i);
+      const vertexX = collidingBody.cornerX[corner]
+      const vertexY = collidingBody.cornerY[corner]
+      const diffX = vertexX - this.origin.x
+      const diffY = vertexY - this.origin.y
+      const distance = Vector.length(diffX, diffY)
+
+      // angle of vertex relative to start angle in [0, 2PI)
+      let angle = (Vector.angle(diffX, diffY) - this.startAngle) % (2 * Math.PI)
+      if (angle < 0) {
+        angle += 2 * Math.PI
+      }
+      if (
+        distance >= this.radius &&
+        distance < this.radius + this.width &&
+        angle <= span
+      ) {
+        if (collision === null) {
+          collision = new Collision(restitution)
+        }
+        const separation = distance - this.radius
+
+        // Vector normal = Vector.unitVector(vertex, origin);
+        let normalX = this.origin.x - vertexX
+        let normalY = this.origin.y - vertexY
+        const normalLen = Vector.length(normalX, normalY)
+        normalX /= normalLen
+        normalY /= normalLen
+
+        const collisionPoint = new CollisionPoint(
+          collidingBody,
+          this,
+          normalX,
+          normalY,
+          vertexX,
+          vertexY,
+          separation
+        )
+        collision.collisionPoints.push(collisionPoint)
+      }
+    }
+    return collision
+  }
+}

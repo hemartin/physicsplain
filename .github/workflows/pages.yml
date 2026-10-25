@@ -22,11 +22,12 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v7
-      # the examples need no build, main.js imports src/ directly
+      # the examples need no build, main.js imports src/ directly; the
+      # comparison page brings its own copies of v0.1.0 and v0.2.0
       - name: Collect example files
         run: |
           mkdir _site
-          cp -r index.html main.js style.css src assets _site/
+          cp -r index.html main.js style.css src assets comparison _site/
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
         with:
