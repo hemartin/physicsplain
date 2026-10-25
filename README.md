@@ -8,16 +8,16 @@ This library is heavily inspired by Erin Catto's [GDC slides](https://box2d.org/
 Below are a few examples as GIF animations.  Check out the [JavaScript examples](https://hemartin.github.io/physicsplain/).
 
 ### Example 1
-![example1](assets/example1.gif)
+![Animation: an object forces other objects out of its way](assets/example1.gif)
 
 ### Example 2
-![example2](assets/example2.gif)
+![Animation: objects falling from the sky](assets/example2.gif)
 
 ### Example 3
-![example3](assets/example3.gif)
+![Animation: objects bouncing off arcs and circles](assets/example3.gif)
 
 ### Example 4
-![example4](assets/example4.gif)
+![Animation: objects bouncing off a wall and a floor made of fixed, one-way lines](assets/example4.gif)
 
 ## Using the Library
 physicsplain is a set of ES modules without dependencies.  Use it in either of these ways:
