@@ -197,24 +197,6 @@ h1 {
     color: var(--ink);
 }
 
-.versions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px 36px;
-    margin: 24px 0 0;
-}
-
-.versions dt {
-    font-family: var(--font-mono);
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: var(--muted);
-}
-
-.versions dd {
-    margin: 2px 0 0;
-}
-
 .toc {
     display: flex;
     flex-wrap: wrap;
