@@ -298,8 +298,9 @@ h1 {
     background: var(--code-bg);
 }
 
-.segmented legend {
-    float: left;
+/* visible label; the real <legend> is visually hidden because mobile
+   Safari won't place a legend inline inside a flex fieldset */
+.segmented-label {
     padding: 0 8px 0 10px;
     font-size: 0.875rem;
     color: var(--muted);
