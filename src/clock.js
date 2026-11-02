@@ -19,13 +19,13 @@ export class Clock {
   /**
    * @param {State} state state whose steps this clock runs, at the
    * state's timestep
-   * @param {Number} maxElapsed largest time in ms that one tick catches up
+   * @param {Number} maxElapsedMs largest time in ms that one tick catches up
    * on, so physics pauses rather than catching up after long gaps (e.g. a
    * hidden browser tab)
    */
-  constructor (state, maxElapsed = 250) {
+  constructor (state, maxElapsedMs = 250) {
     this.state = state
-    this.maxElapsed = maxElapsed
+    this.maxElapsedMs = maxElapsedMs
 
     // time since the last step in ms
     this.remainder = 0
@@ -44,7 +44,7 @@ export class Clock {
    */
   tick (elapsedMs) {
     const stepMs = this.state.timestep * 1000
-    this.remainder += elapsedMs > 0 ? Math.min(elapsedMs, this.maxElapsed) : 0
+    this.remainder += elapsedMs > 0 ? Math.min(elapsedMs, this.maxElapsedMs) : 0
 
     let steps = 0
     while (this.remainder >= stepMs) {
