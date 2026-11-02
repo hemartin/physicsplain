@@ -1,8 +1,8 @@
 # <img src="assets/logo.svg" alt="" width="40" height="40"> physicsplain &ndash; 2D physics in JavaScript
 
-physicsplain is a simple 2D physics library written in JavaScript.  The library is intended for small browser games and animations.  physicsplain is lightweight in memory footprint and code size.
+**Same inputs, same physics, in every browser, bit for bit.**
 
-This library is heavily inspired by Erin Catto's [GDC slides](https://box2d.org/publications/) and [Box2D](https://box2d.org/).  However, it does not provide all functionality that Box2D offers (see limitations below).
+physicsplain is a small, deterministic 2D physics library for browser games and animations, inspired by [Box2D](https://box2d.org/). A game replays to exactly the same result in Chromium, Firefox, WebKit and Node.js, so a server can check a score by replaying the player's inputs.
 
 ## Examples
 Below are a few examples as GIF animations.  Check out the [JavaScript examples](https://hemartin.github.io/physicsplain/).
@@ -36,40 +36,30 @@ class Game extends State {
     this.floor = new FixedFloor(2, new Vector(-1, 0), new Vector(1, 0))
   }
 
-  * getMovingBodies () {
-    yield this.box
-  }
+  * getMovingBodies () { yield this.box }
+  * getFixedBodies () { yield this.floor }
 
-  * getFixedBodies () {
-    yield this.floor
-  }
-
-  // game logic and inputs, once per step
+  // inputs and game logic, once per step
   postStep () {}
 }
 
 const game = new Game()
 const clock = new Clock(game)
-let previous = null
-function frame (now) {
-  clock.tick(previous === null ? 0 : now - previous)
-  previous = now
+let last = 0
+requestAnimationFrame(function frame (now) {
+  clock.tick(last ? now - last : 0) // with PixiJS: clock.tick(ticker.deltaMS)
+  last = now
   draw(game.box.interpolatedOrigin(clock.alpha)) // your drawing code
   requestAnimationFrame(frame)
-}
-requestAnimationFrame(frame)
+})
 ```
 
-With PixiJS, call `clock.tick(ticker.deltaMS)` in a function added to `app.ticker` instead.
-
 ## Deterministic Replays
-Each `step()` advances physics by `state.timestep` seconds (10 ms by default) and gives bit-identical results in every browser and in Node.js. A server can therefore replay a game step by step and check its result. This holds if the game follows these rules:
-- Change bodies and apply inputs only in `postStep()`, never in event handlers or drawing code, because those run per frame. Record inputs in a queue keyed by `state.steps` and apply each one in `postStep()` at its step.
-- Replay by creating the same state, with the same `timestep` and `restitution`, and calling `state.step()` in a loop.
-- Create bodies and yield them from `getMovingBodies()` and `getFixedBodies()` in the same order, because collisions are resolved in that order.
-- Keep `collideBodies()` a pure function of the two bodies.
-- Use a seeded random generator, and `state.time` or `state.steps` instead of the wall clock, e.g. for scores. `state.time` falls behind the wall clock when a long gap (e.g. a hidden browser tab) is capped.
-- Use `sin`, `cos` and `atan2` from physicsplain instead of `Math.sin`, `Math.cos` and `Math.atan2`, which may differ in the last bit between browsers. Avoid `Math.pow` (and `**`), `Math.exp`, `Math.log`, `Math.tan`, `Math.hypot` and similar functions in code that changes bodies, for the same reason. `+`, `-`, `*`, `/`, `Math.sqrt`, `Math.abs`, `Math.min`, `Math.max`, `Math.floor`, `Math.ceil`, `Math.round`, `Math.sign`, `Math.fround` and `Math.imul` are exact in every browser.
+To replay a game, record each input with its step number (`state.steps`) and apply it in `postStep()`. Running the same steps with `state.step()`, e.g. on a server, then gives the same result, bit for bit, as long as the game:
+- changes bodies only in `postStep()`, not in event handlers or drawing code, and keeps `collideBodies()` free of side effects,
+- creates its bodies in the same order, with the same `timestep` and `restitution`,
+- uses a seeded random generator and `state.time` instead of the wall clock,
+- uses `sin`, `cos` and `atan2` from physicsplain instead of `Math.sin`, `Math.cos` and `Math.atan2`, and no other `Math` functions than `sqrt`, `abs`, `min`, `max`, `floor`, `ceil`, `round` and `sign`, as browsers may round the others differently.
 
 ## Development
 Requires Node.js 22 or newer.
@@ -83,13 +73,11 @@ Requires Node.js 22 or newer.
 All changes to `main` go through pull requests, and CI must pass before a pull request can be merged.  Each push to `main` deploys the examples to GitHub Pages.
 
 ## Known Limitations
-Currently only rectangles are supported as moving bodies. Rectangles, arcs, circles, and floors are supported as fixed bodies. A floor (`FixedFloor`) is a one-sided line: bodies hit it only from its front, the left side when looking from its start to its end, and pass through it from behind.
+Moving bodies are rectangles. Fixed bodies are rectangles, arcs, circles and floors. A floor (`FixedFloor`) is one-sided: bodies hit it from its front, the left side when looking from its start to its end, and pass through it from behind.
+- Contacts have no friction, so bodies slide freely along each other. `lateralFriction` and `rotationalFriction` act like air drag, so a stack of slightly turned boxes slides apart.
+- Collisions are checked once per step (10 ms), so a fast body can pass through a thin one. Only a `FixedFloor` pushes back bodies that crossed it during the last step.
 
-The following limitations remain:
-- Contacts have no friction, so bodies slide freely along each other and along fixed bodies. `lateralFriction` and `rotationalFriction` slow a body down like air drag, not like friction between surfaces. For example, a stack of slightly rotated boxes slides apart.
-- Collisions are checked once per step (10 ms), so a fast body can pass through a thin body without touching it. Only a `FixedFloor` pushes back bodies that crossed it during the last step.
-
-Consider using Box2D or other physics libraries if your project is impacted by these limitations.
+Consider Box2D or another physics library if these limitations matter for your project.
 
 ## Acknowledgments
 This project was inspired by the following projects and websites:
