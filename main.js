@@ -1,6 +1,7 @@
 import {
   State,
   Body,
+  Clock,
   FixedArc,
   FixedBody,
   FixedCircle,
@@ -19,8 +20,8 @@ const canvasWidth = 500
 const canvasHeight = 260
 
 /*
- * Example drawn on its own canvas. It restarts every repeat milliseconds by
- * calling initBodies() again.
+ * Example drawn on its own canvas. It restarts every repeat seconds of
+ * simulated time by calling initBodies() again.
  */
 class Example extends State {
   constructor (document, canvasId, backgroundColor, repeat) {
@@ -50,7 +51,7 @@ class Example extends State {
     yield * this.fixedBodies
   }
 
-  // draws bodies between the last two steps (alpha, see State.postAdvance),
+  // draws bodies between the last two steps (alpha, see Clock.alpha),
   // override to draw more
   draw (alpha) {
     for (const body of this.movingBodies) {
@@ -61,27 +62,25 @@ class Example extends State {
     }
   }
 
-  postAdvance (now, alpha) {
-    // clear canvas
+  // clears the canvas and draws the example
+  render (alpha) {
     this.context.fillStyle = this.backgroundColor
     this.context.fillRect(0, 0, this.canvas.width, this.canvas.height)
-
     this.draw(alpha)
+  }
 
-    // reset example if repeat time has passed
-    if (this.lastRepeat === 0) {
-      this.lastRepeat = now
-    }
-    if (now - this.lastRepeat > this.repeat) {
+  // reset example if repeat time has passed
+  postStep () {
+    if (this.time - this.lastRepeat >= this.repeat) {
       this.initBodies()
-      this.lastRepeat = now
+      this.lastRepeat = this.time
     }
   }
 }
 
 class Example1 extends Example {
   constructor (document) {
-    super(document, 'canvas1', '#e0e5db', 4000) // repeat every 4 seconds
+    super(document, 'canvas1', '#e0e5db', 4) // repeat every 4 seconds
     for (const body of this.movingBodies) {
       this.colors[body.id] = body.id === 0 ? '#00b8b8' : '#e4bd0b'
     }
@@ -127,7 +126,7 @@ class Example1 extends Example {
 
 class Example2 extends Example {
   constructor (document) {
-    super(document, 'canvas2', '#0098d8', 7000) // repeat every 7 seconds
+    super(document, 'canvas2', '#0098d8', 7) // repeat every 7 seconds
     for (const body of this.movingBodies) {
       this.colors[body.id] = body.id < 3 ? '#e5e7de' : '#f54123'
     }
@@ -173,7 +172,7 @@ class Example2 extends Example {
 
 class Example3 extends Example {
   constructor (document) {
-    super(document, 'canvas3', '#f45844', 4000) // repeat every 4 seconds
+    super(document, 'canvas3', '#f45844', 4) // repeat every 4 seconds
     for (const body of this.movingBodies) {
       this.colors[body.id] = '#dfe0e2'
     }
@@ -222,7 +221,7 @@ class Example3 extends Example {
 
 class Example4 extends Example {
   constructor (document) {
-    super(document, 'canvas4', '#fff4c4', 3000) // repeat every 3 seconds
+    super(document, 'canvas4', '#fff4c4', 3) // repeat every 3 seconds
     for (const body of this.movingBodies) {
       this.colors[body.id] = '#7e5c9f'
     }
@@ -273,18 +272,24 @@ window.onload = function () {
     resizeCanvas(examples)
   })
 
-  // step function is called every time the browser refreshes the UI
-  function step (now) {
-    // advance state of all examples
-    for (const example of examples) {
-      example.advance(now)
-    }
+  // one clock per example runs its steps as time passes
+  const clocks = examples.map(example => new Clock(example))
+
+  // frame function is called every time the browser refreshes the UI
+  let previous = null
+  function frame (now) {
+    const elapsed = previous === null ? 0 : now - previous
+    previous = now
+    examples.forEach((example, i) => {
+      clocks[i].tick(elapsed)
+      example.render(clocks[i].alpha)
+    })
 
     // request next animation frame from browser
-    window.requestAnimationFrame(step)
+    window.requestAnimationFrame(frame)
   }
 
-  window.requestAnimationFrame(step)
+  window.requestAnimationFrame(frame)
 }
 
 /*

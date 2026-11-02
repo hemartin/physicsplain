@@ -7,13 +7,14 @@ import { defaultRestitution, defaultTimestep } from './constants.js'
  * and fixed bodies are passed via two generator functions *movingBodies() and
  * *fixedBodies() which must be overridden by concrete state implementations.
  *
+ * Each call to step() advances physics by one fixed step, independent of
+ * wall-clock time, so the same steps give the same results in every engine.
+ * A Clock runs the steps as time passes in the browser.
+ *
  * @author Martin Hentschel
  */
 export class State {
   constructor () {
-    this.previous = 0
-    this.remainder = 0
-
     // number of steps run so far
     this.steps = 0
 
@@ -38,13 +39,6 @@ export class State {
   * getFixedBodies () {}
 
   /**
-   * Called before advancing physics of bodies. Override if needed.
-   *
-   * @param {Number} now current timestamp
-   */
-  preAdvance (now) {}
-
-  /**
    * @returns {Number} simulated time in seconds, steps * timestep
    */
   get time () {
@@ -60,26 +54,6 @@ export class State {
   postStep () {}
 
   /**
-   * Called after advancing physics of bodies. Override if needed to
-   * udpate graphics. Most of the time, multiple steps of physics
-   * simulations will be run in one call to advance(). Graphics should
-   * only be updated after all steps have finished to avoid
-   * unnecessary computation.
-   *
-   * Physics runs in fixed steps (timestep), so the current time usually lies
-   * between two steps. Draw bodies at Body.interpolatedOrigin(alpha),
-   * interpolatedAngle(alpha) or interpolatedCorners(alpha) to avoid
-   * judder, e.g. at 60 Hz frames alternate between 1 and 2 steps of 10 ms.
-   * This draws bodies up to one step behind physics.
-   *
-   * @param {Number} now current timestamp
-   * @param {Number} alpha time since the last step as a fraction of a
-   * step, from 0 (draw the state before the last step) to 1 (draw the
-   * current state)
-   */
-  postAdvance (now, alpha) {}
-
-  /**
    * Evaluates whether two bodies should collide. Order of bodies does not
    * matter.
    *
@@ -89,37 +63,6 @@ export class State {
    */
   collideBodies (body1, body2) {
     return true
-  }
-
-  /**
-   * Advances bodies given current timestamp. Elapsed time since the last
-   * call is capped at 250 ms, so physics pauses rather than catching up
-   * after long gaps (e.g. a hidden browser tab).
-   *
-   * @param {Number} now current timestamp in ms
-   */
-  advance (now) {
-    // call callback
-    this.preAdvance(now)
-
-    const fixedTimestep = this.timestep * 1000 // in ms
-
-    if (this.previous === 0) {
-      this.previous = now
-    }
-    // cap elapsed time (e.g. after the tab was hidden) to avoid freezing
-    let timestep = Math.min(now - this.previous, 250) + this.remainder
-
-    // move physics forward in fixed intervals
-    while (timestep > fixedTimestep) {
-      this.step()
-      timestep -= fixedTimestep
-    }
-    this.previous = now
-    this.remainder = timestep
-
-    // call callback, lets application update graphics
-    this.postAdvance(now, this.remainder / fixedTimestep)
   }
 
   /**

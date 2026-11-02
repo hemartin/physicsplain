@@ -178,7 +178,7 @@ export class Body {
    * the screen refreshes at a different rate than physics steps.
    *
    * @param {Number} alpha 0 for the origin before the last step, 1 for the
-   * current origin, as passed to State.postAdvance()
+   * current origin, see Clock.alpha
    * @returns {Vector} interpolated origin
    */
   interpolatedOrigin (alpha) {
