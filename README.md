@@ -80,7 +80,7 @@ Requires Node.js 22 or newer.
 - `npm run test:coverage` runs the tests and prints a coverage report.
 - To run the examples locally, serve the repository root with any static web server, e.g. `npx serve`, and open `index.html`.
 
-All changes to `master` go through pull requests, and CI must pass before a pull request can be merged.  Each push to `master` deploys the examples to GitHub Pages.
+All changes to `main` go through pull requests, and CI must pass before a pull request can be merged.  Each push to `main` deploys the examples to GitHub Pages.
 
 ## Known Limitations
 Currently only rectangles are supported as moving bodies. Rectangles, arcs, circles, and floors are supported as fixed bodies. A floor (`FixedFloor`) is a one-sided line: bodies hit it only from its front, the left side when looking from its start to its end, and pass through it from behind.
