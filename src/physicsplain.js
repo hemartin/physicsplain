@@ -5,6 +5,7 @@
  */
 
 export { Body } from './body.js'
+export { Clock } from './clock.js'
 export { atan2, cos, sin } from './detmath.js'
 export { FixedArc } from './fixedarc.js'
 export { FixedBody } from './fixedbody.js'

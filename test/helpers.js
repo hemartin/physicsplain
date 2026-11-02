@@ -22,10 +22,10 @@ export class TestState extends State {
 /**
  * Collides all bodies of state once and applies the resulting impulses.
  */
-export function collideAndApply (state, timestep = 0.01) {
-  const collisions = state.collide(timestep)
+export function collideAndApply (state) {
+  const collisions = state.collide()
   for (const collision of collisions) {
-    collision.apply(timestep)
+    collision.apply(state.timestep)
   }
   return collisions
 }

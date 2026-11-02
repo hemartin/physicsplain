@@ -40,7 +40,7 @@ test('body falling onto the circle bounces back up', () => {
   body.rotationalFriction = 0
   const state = new TestState([body], [circle()])
   for (let i = 0; i < 30; i++) {
-    state.advanceByTimestep(0.01)
+    state.step()
   }
   assert.ok(body.velocity.y > 0.5, `vy ${body.velocity.y}`)
   assert.ok(Math.min(...body.cornerY) > 0.19, `bottom ${Math.min(...body.cornerY)}`)

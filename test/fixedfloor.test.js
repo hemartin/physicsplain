@@ -11,7 +11,7 @@ test('body falling onto the floor bounces back up', () => {
   body.rotationalFriction = 0
   const state = new TestState([body], [floor()])
   for (let i = 0; i < 30; i++) {
-    state.advanceByTimestep(0.01)
+    state.step()
   }
   assert.ok(body.velocity.y > 0.5, `vy ${body.velocity.y}`)
   assert.ok(Math.min(...body.cornerY) > -0.02, `bottom ${Math.min(...body.cornerY)}`)
@@ -30,9 +30,9 @@ test('fast body that passed the floor in one step bounces back', () => {
   body.lateralFriction = 0
   body.rotationalFriction = 0
   const state = new TestState([body], [floor()])
-  state.advanceByTimestep(0.01)
+  state.step()
   assert.ok(Math.max(...body.cornerY) < 0, `top ${Math.max(...body.cornerY)}`)
-  state.advanceByTimestep(0.01)
+  state.step()
   assert.ok(body.velocity.y > 0, `vy ${body.velocity.y}`)
 })
 
@@ -72,7 +72,7 @@ test('body coming from behind the floor passes through it', () => {
   body.rotationalFriction = 0
   const state = new TestState([body], [floor()])
   for (let i = 0; i < 100; i++) {
-    state.advanceByTimestep(0.01)
+    state.step()
   }
   assert.ok(Math.abs(body.origin.y - 0.7) < 1e-9, `y ${body.origin.y}`)
   assert.equal(body.velocity.y, 1)
