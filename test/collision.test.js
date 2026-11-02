@@ -49,7 +49,7 @@ test('stacked box drifting sideways keeps the top normal', () => {
   // corners of upper box sit exactly on the side edges of lower box
   const lower = new Body(1).finalize()
   const upper = new Body(2).setOrigin(0, 0.099).setVelocity(0.001, -0.01).finalize()
-  const points = new TestState([lower, upper]).collide(0.01).flatMap(c => c.collisionPoints)
+  const points = new TestState([lower, upper]).collide().flatMap(c => c.collisionPoints)
   assert.equal(points.length, 2)
   for (const p of points) {
     assert.ok(Math.abs(p.normalX) < 1e-9 && Math.abs(p.normalY - 1) < 1e-9, `normal (${p.normalX}, ${p.normalY})`)
@@ -60,7 +60,7 @@ test('separation belongs to the edge of the normal', () => {
   // corner crosses the left edge 0.02 deep, 0.005 below the top edge
   const impacted = new FixedBody(1).finalize()
   const colliding = new Body(2).setOrigin(-0.08, 0.095).setVelocity(3, 0).finalize()
-  const points = new TestState([colliding], [impacted]).collide(0.01).flatMap(c => c.collisionPoints)
+  const points = new TestState([colliding], [impacted]).collide().flatMap(c => c.collisionPoints)
   assert.equal(points.length, 2)
   for (const p of points) {
     assert.ok(Math.abs(Math.abs(p.normalX) - 1) < 1e-9 && Math.abs(p.normalY) < 1e-9, `normal (${p.normalX}, ${p.normalY})`)
@@ -74,7 +74,7 @@ for (const [name, offset, restitution] of [['aligned', 0, 0], ['offset', 0.01, 0
     const state = new TestState(boxes, [floor()])
     state.restitution = restitution
     for (let i = 0; i < 500; i++) {
-      state.advanceByTimestep(0.01)
+      state.step()
     }
     const height = Math.max(...boxes[2].cornerY)
     assert.ok(height > 0.29, `stack height ${height}`)
@@ -105,7 +105,7 @@ test('wide box resting on the floor does not tilt', () => {
   const state = new TestState([box], [floor()])
   state.restitution = 0
   for (let i = 0; i < 1000; i++) {
-    state.advanceByTimestep(0.01)
+    state.step()
   }
   assert.ok(Math.abs(box.angle) < 1e-4, `angle ${box.angle}`)
 })
@@ -123,7 +123,7 @@ test('stacked boxes under gravity do not keep sinking', () => {
   const state = new TestState([lower, upper], [floor()])
   state.restitution = 0
   for (let i = 0; i < 1000; i++) {
-    state.advanceByTimestep(0.01)
+    state.step()
   }
   const floorPenetration = -Math.min(...lower.cornerY)
   const stackPenetration = Math.max(...lower.cornerY) - Math.min(...upper.cornerY)
@@ -139,7 +139,7 @@ test('box pushed into the floor moves out without bouncing', () => {
     state.restitution = 0
     let maxY = box.origin.y
     for (let i = 0; i < 100; i++) {
-      state.advanceByTimestep(0.01)
+      state.step()
       maxY = Math.max(maxY, box.origin.y)
     }
     const penetration = -Math.min(...box.cornerY)
@@ -154,7 +154,7 @@ test('box resting on the floor stays put', () => {
   const state = new TestState([box], [floor()])
   state.restitution = 0
   for (let i = 0; i < 1000; i++) {
-    state.advanceByTimestep(0.01)
+    state.step()
     assert.ok(Math.abs(box.origin.y - 0.05) < 0.0001, `step ${i}, y ${box.origin.y}`)
     assert.ok(Math.abs(box.velocity.y) < 0.001, `step ${i}, vy ${box.velocity.y}`)
   }
@@ -175,7 +175,7 @@ test('elastic bounce under gravity keeps its height', () => {
   const apexes = []
   let previousVy = 0
   for (let i = 0; i < 1500; i++) {
-    state.advanceByTimestep(0.01)
+    state.step()
     if (previousVy > 0 && box.velocity.y <= 0) {
       apexes.push(box.origin.y)
     }
@@ -197,7 +197,7 @@ test('narrow box landing on its short end does not start spinning', () => {
       state.restitution = restitution
       let maxAngularVelocity = 0
       for (let i = 0; i < 20; i++) {
-        state.advanceByTimestep(0.01)
+        state.step()
         maxAngularVelocity = Math.max(maxAngularVelocity, Math.abs(box.angularVelocity))
       }
       assert.ok(maxAngularVelocity < 1e-6, `width ${width}, restitution ${restitution}: angularVelocity ${maxAngularVelocity}`)
@@ -266,7 +266,7 @@ test('mirrored scene stays mirrored', () => {
   ]
   const state = new TestState(boxes, ramps)
   for (let step = 1; step <= 500; step++) {
-    state.advanceByTimestep(0.01)
+    state.step()
     for (let i = 0; i < 3; i++) {
       const box = boxes[i]
       const mirrored = boxes[5 - i]

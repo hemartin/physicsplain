@@ -1,4 +1,5 @@
 import { Collision } from './collision.js'
+import { defaultRestitution, defaultTimestep } from './constants.js'
 
 /**
  * Abstract state class that advances moving bodies. It collides moving bodies
@@ -13,8 +14,12 @@ export class State {
     this.previous = 0
     this.remainder = 0
 
+    // length of a physics step in seconds; set before the first step, and
+    // replay with the same value
+    this.timestep = defaultTimestep
+
     // restitution: 1 = elastic collision, <1 inelastic collision
-    this.restitution = 1
+    this.restitution = defaultRestitution
   }
 
   /**
@@ -42,8 +47,7 @@ export class State {
    * physics consistent even if application is replayed at different
    * frames per second later.
    *
-   * @param {Number} fixedTimestep fixed timestep in seconds (0.01), the
-   * same timestep used to integrate bodies
+   * @param {Number} fixedTimestep timestep in seconds, see timestep
    */
   postStep (fixedTimestep) {}
 
@@ -54,11 +58,11 @@ export class State {
    * only be updated after all steps have finished to avoid
    * unnecessary computation.
    *
-   * Physics runs in fixed steps of 10 ms, so the current time usually lies
+   * Physics runs in fixed steps (timestep), so the current time usually lies
    * between two steps. Draw bodies at Body.interpolatedOrigin(alpha),
    * interpolatedAngle(alpha) or interpolatedCorners(alpha) to avoid
-   * judder, e.g. at 60 Hz frames alternate between 1 and 2 steps. This
-   * draws bodies up to one step (10 ms) behind physics.
+   * judder, e.g. at 60 Hz frames alternate between 1 and 2 steps of 10 ms.
+   * This draws bodies up to one step behind physics.
    *
    * @param {Number} now current timestamp
    * @param {Number} alpha time since the last step as a fraction of a
@@ -90,7 +94,7 @@ export class State {
     // call callback
     this.preAdvance(now)
 
-    const fixedTimestep = 10 // in ms
+    const fixedTimestep = this.timestep * 1000 // in ms
 
     if (this.previous === 0) {
       this.previous = now
@@ -100,11 +104,11 @@ export class State {
 
     // move physics forward in fixed intervals
     while (timestep > fixedTimestep) {
-      this.advanceByTimestep(fixedTimestep / 1000)
+      this.step()
       timestep -= fixedTimestep
 
       // call callback, lets application update physics (e.g. targets)
-      this.postStep(fixedTimestep / 1000)
+      this.postStep(this.timestep)
     }
     this.previous = now
     this.remainder = timestep
@@ -114,14 +118,13 @@ export class State {
   }
 
   /**
-   * Advances bodies by given timestamp (typically in the order of 10
-   * milliseconds).
-   *
-   * @param {Number} timestep timestep
+   * Advances bodies by one step of length timestep.
    */
-  advanceByTimestep (timestep) {
+  step () {
+    const timestep = this.timestep
+
     // check for collisions
-    const collisions = this.collide(timestep)
+    const collisions = this.collide()
 
     // apply forces
     for (const body of this.getMovingBodies()) {
@@ -143,10 +146,9 @@ export class State {
    * Collides all movable bodies with each other and all movable bodies against
    * all fixed bodies. Applies predicate (if defined) to evaluate if bodies
    * should collide.
-   *
-   * @param {Number} timestep timestep
    */
-  collide (timestep) {
+  collide () {
+    const timestep = this.timestep
     const collisions = []
 
     // moving bodies once per step; collide each pair of movable bodies once

@@ -26,7 +26,7 @@ test('collide finds two overlapping bodies', () => {
     new Body(1).setOrigin(0, 0).finalize(),
     new Body(2).setOrigin(0.05, 0.05).finalize()
   ])
-  assert.equal(state.collide(0.01).length, 1)
+  assert.equal(state.collide().length, 1)
 })
 
 test('advance caps elapsed time after a long pause', () => {
@@ -53,7 +53,7 @@ test('bodies without id collide', () => {
     new Body().setOrigin(0, 0).finalize(),
     new Body().setOrigin(0.05, 0.05).finalize()
   ])
-  assert.equal(state.collide(0.01).length, 1)
+  assert.equal(state.collide().length, 1)
 })
 
 test('bodies with duplicate ids collide', () => {
@@ -61,7 +61,7 @@ test('bodies with duplicate ids collide', () => {
     new Body(1).setOrigin(0, 0).finalize(),
     new Body(1).setOrigin(0.05, 0.05).finalize()
   ])
-  assert.equal(state.collide(0.01).length, 1)
+  assert.equal(state.collide().length, 1)
 })
 
 test('fixed body sharing an id with a moving body does not merge islands', () => {
@@ -73,7 +73,7 @@ test('fixed body sharing an id with a moving body does not merge islands', () =>
     new FixedBody(2).setOrigin(-0.5, -0.5).setDimension(0.5, 1).finalize(),
     new FixedBody(3).setOrigin(0.5, -0.5).setDimension(0.5, 1).finalize()
   ])
-  assert.equal(state.collide(0.01).length, 2)
+  assert.equal(state.collide().length, 2)
 })
 
 test('collisions merge into islands of connected bodies', () => {
@@ -85,7 +85,7 @@ test('collisions merge into islands of connected bodies', () => {
     new Body().setOrigin(1, 0).finalize(),
     new Body().setOrigin(1.09, 0.02).finalize()
   ])
-  const islands = state.collide(0.01).map(c => new Set(c.collisionPoints.flatMap(cp => [cp.collidingEntity, cp.impactedEntity])).size)
+  const islands = state.collide().map(c => new Set(c.collisionPoints.flatMap(cp => [cp.collidingEntity, cp.impactedEntity])).size)
   assert.deepEqual(islands.sort((a, b) => a - b), [2, 3])
 })
 
@@ -102,7 +102,7 @@ test('collide gets the moving bodies once and asks collideBodies once per pair',
   }
   const pairs = []
   state.collideBodies = (body1, body2) => pairs.push([body1.id, body2.id].sort().join('-'))
-  state.collide(0.01)
+  state.collide()
   assert.equal(generators, 1)
   assert.deepEqual(pairs.sort(), ['1-2', '1-3', '1-4', '2-3', '2-4', '3-4'])
 })
@@ -133,5 +133,16 @@ test('interpolated bodies move smoothly at 60 Hz and 144 Hz', () => {
       const move = drawn[i] - drawn[i - 1]
       assert.ok(Math.abs(move - 1 / hz) < 1e-9, `${hz} Hz, frame ${i}: moved ${move}`)
     }
+  }
+})
+
+test('step advances bodies by the timestep of the state', () => {
+  for (const timestep of [0.01, 0.005]) {
+    const body = new Body(1).setVelocity(1, 0).finalize()
+    body.lateralFriction = 0
+    const state = new TestState([body])
+    state.timestep = timestep
+    state.step()
+    assert.equal(body.origin.x, timestep)
   }
 })

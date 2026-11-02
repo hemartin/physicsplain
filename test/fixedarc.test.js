@@ -20,7 +20,7 @@ test('body moving outward bounces back off the arc', () => {
   body.rotationalFriction = 0
   const state = new TestState([body], [arc])
   for (let i = 0; i < 30; i++) {
-    state.advanceByTimestep(0.01)
+    state.step()
   }
   // velocity points back towards the arc's origin
   const radialVelocity = Vector.dot(body.velocity.x, body.velocity.y, body.origin.x, body.origin.y)
