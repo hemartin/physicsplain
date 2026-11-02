@@ -38,13 +38,13 @@ export class Clock {
   /**
    * Runs all steps due after elapsedMs more milliseconds.
    *
-   * @param {Number} elapsedMs time since the last tick in ms, 0 on the
-   * first tick
+   * @param {Number} elapsedMs time since the last tick in ms, >= 0, and 0
+   * on the first tick
    * @returns {Number} number of steps run
    */
   tick (elapsedMs) {
     const stepMs = this.state.timestep * 1000
-    this.remainder += elapsedMs > 0 ? Math.min(elapsedMs, this.maxElapsedMs) : 0
+    this.remainder += Math.min(elapsedMs, this.maxElapsedMs)
 
     let steps = 0
     while (this.remainder >= stepMs) {

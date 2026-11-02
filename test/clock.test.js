@@ -27,14 +27,6 @@ test('tick caps elapsed time after a long pause', () => {
   assert.equal(new Clock(new TestState(), 100).tick(tabHidden), 10)
 })
 
-test('tick ignores negative and missing elapsed time', () => {
-  const clock = new Clock(new TestState())
-  assert.equal(clock.tick(-5), 0)
-  assert.equal(clock.tick(NaN), 0)
-  assert.equal(clock.tick(undefined), 0)
-  assert.equal(clock.tick(10), 1)
-})
-
 test('tick follows the timestep of the state', () => {
   const state = new TestState()
   state.timestep = 0.005
