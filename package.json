@@ -1,10 +1,11 @@
 {
   "name": "physicsplain",
-  "version": "0.2.0",
-  "description": "A simple 2D physics library written in JavaScript, intended for small browser games and animations.",
+  "version": "0.3.0",
+  "description": "A small, deterministic 2D physics library for browser games and animations.",
   "keywords": [
     "physics",
     "2d",
+    "deterministic",
     "game",
     "rigid-body"
   ],
