@@ -27,10 +27,12 @@
   "scripts": {
     "lint": "eslint .",
     "test": "node --test \"test/**/*.test.js\"",
+    "test:browsers": "node test/browsers.js",
     "test:coverage": "node --test --experimental-test-coverage --test-coverage-include=\"src/**\" \"test/**/*.test.js\""
   },
   "devDependencies": {
     "eslint": "^10.13.0",
-    "neostandard": "^0.14.1"
+    "neostandard": "^0.14.1",
+    "playwright": "^1.63.0"
   }
 }

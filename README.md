@@ -75,6 +75,7 @@ Each `step()` advances physics by `state.timestep` seconds (10 ms by default) an
 Requires Node.js 22 or newer.
 - `npm ci` installs the development dependencies.
 - `npm test` runs the tests.
+- `npm run test:browsers` checks that Chromium, Firefox and WebKit give the same results as Node, bit for bit. Run `npx playwright install` once before.
 - `npm run lint` checks the code style ([neostandard](https://github.com/neostandard/neostandard)).
 - `npm run test:coverage` runs the tests and prints a coverage report.
 - To run the examples locally, serve the repository root with any static web server, e.g. `npx serve`, and open `index.html`.
