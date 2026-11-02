@@ -1,5 +1,6 @@
 import { Collision } from './collision.js'
 import { CollisionPoint } from './collisionpoint.js'
+import * as detmath from './detmath.js'
 import { FixedEntity } from './fixedentity.js'
 import { Vector } from './vector.js'
 
@@ -36,8 +37,8 @@ export class FixedFloor extends FixedEntity {
     this.normal = new Vector(-diffY, diffX).scale(1 / this.length)
 
     // rotation by -angle into this line's frame (line along the x axis)
-    this.cos = Math.cos(-this.angle)
-    this.sin = Math.sin(-this.angle)
+    this.cos = detmath.cos(-this.angle)
+    this.sin = detmath.sin(-this.angle)
   }
 
   collide (collidingBody, timestep, restitution) {

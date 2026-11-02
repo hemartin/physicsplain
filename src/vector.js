@@ -1,3 +1,5 @@
+import * as detmath from './detmath.js'
+
 /**
  * Vector.
  *
@@ -34,8 +36,8 @@ export class Vector {
   }
 
   rotate (angle) {
-    const cos = Math.cos(angle)
-    const sin = Math.sin(angle)
+    const cos = detmath.cos(angle)
+    const sin = detmath.sin(angle)
     const tmpx = this.x * cos - this.y * sin
     const tmpy = this.x * sin + this.y * cos
     this.x = tmpx
@@ -85,6 +87,6 @@ export class Vector {
 
   // angle of (x, y) in (-PI, PI], like the angle of a body
   static angle (x, y) {
-    return Math.atan2(y, x)
+    return detmath.atan2(y, x)
   }
 }
