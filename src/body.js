@@ -1,5 +1,6 @@
 import { Collision } from './collision.js'
 import { CollisionPoint } from './collisionpoint.js'
+import * as detmath from './detmath.js'
 import { Vector } from './vector.js'
 
 export const bodyInfiniteMass = -1
@@ -8,7 +9,7 @@ export const bodyInfiniteMass = -1
 // larger than the error margin of corners on an edge
 export const boundingMargin = 1e-4
 
-// wraps angle to (-PI, PI], the range of Math.atan2 and Vector.angle
+// wraps angle to (-PI, PI], the range of atan2 and Vector.angle
 const wrapAngle = (angle) => angle - 2 * Math.PI * Math.ceil(angle / (2 * Math.PI) - 0.5)
 
 /**
@@ -214,8 +215,8 @@ export class Body {
     // rotate the current corners around the current origin back by the
     // part of the last turn not yet drawn
     const turn = this.interpolatedAngle(alpha) - this.angle
-    const cos = Math.cos(turn)
-    const sin = Math.sin(turn)
+    const cos = detmath.cos(turn)
+    const sin = detmath.sin(turn)
     const cornerX = []
     const cornerY = []
     for (let i = 0; i < 4; i++) {
@@ -269,8 +270,8 @@ export class Body {
   }
 
   calculateCorners () {
-    const directionY = Math.sin(this.angle)
-    const directionX = Math.cos(this.angle)
+    const directionY = detmath.sin(this.angle)
+    const directionX = detmath.cos(this.angle)
 
     // kept to rotate points into this body's frame when colliding
     this.cos = directionX
