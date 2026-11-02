@@ -14,6 +14,9 @@ export class State {
     this.previous = 0
     this.remainder = 0
 
+    // number of steps run so far
+    this.steps = 0
+
     // length of a physics step in seconds; set before the first step, and
     // replay with the same value
     this.timestep = defaultTimestep
@@ -42,14 +45,19 @@ export class State {
   preAdvance (now) {}
 
   /**
-   * Called after each step when advancing physics. Override if needed
-   * to update physics (e.g. set new targets of bodies). This keeps
-   * physics consistent even if application is replayed at different
-   * frames per second later.
-   *
-   * @param {Number} fixedTimestep timestep in seconds, see timestep
+   * @returns {Number} simulated time in seconds, steps * timestep
    */
-  postStep (fixedTimestep) {}
+  get time () {
+    return this.steps * this.timestep
+  }
+
+  /**
+   * Called at the end of each step, after steps was increased. Override
+   * to apply inputs and game logic that change bodies (e.g. set targets).
+   * This keeps physics the same when the game is replayed, at any frame
+   * rate.
+   */
+  postStep () {}
 
   /**
    * Called after advancing physics of bodies. Override if needed to
@@ -106,9 +114,6 @@ export class State {
     while (timestep > fixedTimestep) {
       this.step()
       timestep -= fixedTimestep
-
-      // call callback, lets application update physics (e.g. targets)
-      this.postStep(this.timestep)
     }
     this.previous = now
     this.remainder = timestep
@@ -118,7 +123,7 @@ export class State {
   }
 
   /**
-   * Advances bodies by one step of length timestep.
+   * Advances bodies by one step of length timestep, then calls postStep().
    */
   step () {
     const timestep = this.timestep
@@ -140,6 +145,9 @@ export class State {
     for (const body of this.getMovingBodies()) {
       body.advance(timestep)
     }
+
+    this.steps++
+    this.postStep()
   }
 
   /**

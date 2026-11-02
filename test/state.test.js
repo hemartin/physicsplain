@@ -38,14 +38,30 @@ test('advance caps elapsed time after a long pause', () => {
   assert.ok(steps <= 25, `${steps} steps in one frame`)
 })
 
-test('postStep receives the timestep in seconds', () => {
+test('steps and time start at zero and count each step', () => {
   const state = new TestState()
-  const timesteps = []
-  state.postStep = (timestep) => timesteps.push(timestep)
-  state.advance(1000)
-  state.advance(1025)
-  assert.ok(timesteps.length > 0)
-  assert.ok(timesteps.every(t => t === 0.01), `timesteps ${timesteps}`)
+  assert.equal(state.steps, 0)
+  assert.equal(state.time, 0)
+  for (let i = 0; i < 3; i++) {
+    state.step()
+  }
+  assert.equal(state.steps, 3)
+  assert.equal(state.time, 3 * 0.01)
+  state.timestep = 0.005
+  assert.equal(state.time, 3 * 0.005)
+})
+
+test('postStep runs once at the end of each step, after steps was increased', () => {
+  const body = new Body(1).setVelocity(1, 0).finalize()
+  body.lateralFriction = 0
+  const state = new TestState([body])
+  const seen = []
+  state.postStep = function () {
+    seen.push([this.steps, body.origin.x])
+  }
+  state.step()
+  state.step()
+  assert.deepEqual(seen, [[1, 0.01], [2, 0.02]])
 })
 
 test('bodies without id collide', () => {
