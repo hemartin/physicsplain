@@ -39,6 +39,12 @@ export class State {
   * getFixedBodies () {}
 
   /**
+   * @return{Generator} All springs as an iterable. This is a generator
+   * method. None by default; override to add springs.
+   */
+  * getSprings () {}
+
+  /**
    * @returns {Number} simulated time in seconds, steps * timestep
    */
   get time () {
@@ -73,6 +79,19 @@ export class State {
 
     // check for collisions
     const collisions = this.collide()
+
+    // apply spring forces, all computed before any velocity changes, so the
+    // order of springs does not matter
+    const springForces = []
+    for (const spring of this.getSprings()) {
+      const force = spring.force()
+      if (force !== null) {
+        springForces.push([spring, force])
+      }
+    }
+    for (const [spring, force] of springForces) {
+      spring.applyForce(force, timestep)
+    }
 
     // apply forces
     for (const body of this.getMovingBodies()) {

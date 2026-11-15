@@ -18,6 +18,7 @@ import {
   FixedCircle,
   FixedFloor,
   sin,
+  Spring,
   State,
   Vector
 } from '../src/physicsplain.js'
@@ -28,7 +29,8 @@ export const expectedHashes = {
   atan2: 'e4e9fa4aee7b151a469585b8ea786df787a388a18abe09fa60599acc11385761',
   pile: 'f9cb2d7bada51ef601ef9fba977622be16767fcc3cdecc00bb2bd8a1f81c0f8d',
   bounce: 'bfdf5b87acf242e6fa12dd365378a715a58899ea285ceb0a2c0f0344f87f99dd',
-  steering: '082509e27046bf781c8c30b13befb01d9c8be9b5e751cca4fc8c3cc6f6decbbd'
+  steering: '082509e27046bf781c8c30b13befb01d9c8be9b5e751cca4fc8c3cc6f6decbbd',
+  springs: '18fe3624cff4849773ead9c04fefe78ca7fc6863e701c3b29f0b6e1a4bee4964'
 }
 
 /**
@@ -125,10 +127,11 @@ function detmath () {
 }
 
 class SceneState extends State {
-  constructor (movingBodies, fixedBodies, inputs = {}) {
+  constructor (movingBodies, fixedBodies, inputs = {}, springs = []) {
     super()
     this.movingBodies = movingBodies
     this.fixedBodies = fixedBodies
+    this.springs = springs
     // inputs by step number, applied in postStep()
     this.inputs = inputs
   }
@@ -139,6 +142,10 @@ class SceneState extends State {
 
   * getFixedBodies () {
     yield * this.fixedBodies
+  }
+
+  * getSprings () {
+    yield * this.springs
   }
 
   postStep () {
@@ -241,5 +248,26 @@ const scenes = {
       }
     }
     return new SceneState(bodies, [new FixedCircle(10, new Vector(0, -0.1), 0.12)], inputs)
+  },
+
+  // a chain of boxes hangs from a fixed body on springs at off-centre
+  // points, swings, turns and bumps into a fixed circle
+  springs () {
+    const anchor = new FixedBody(10).setOrigin(0, 0.6).finalize()
+    const boxes = [0, 1, 2, 3].map(i => new Body(i + 1)
+      .setOrigin(0.15 * (i + 1), 0.5 - 0.1 * i)
+      .setAngle(0.3 * i)
+      .setForce(0, -1)
+      .finalize())
+    const springs = [new Spring(anchor, boxes[0]).setLocalPointB(-0.05, 0.05)]
+    for (let i = 1; i < boxes.length; i++) {
+      springs.push(new Spring(boxes[i - 1], boxes[i])
+        .setLocalPointA(0.05, -0.05)
+        .setLocalPointB(-0.05, 0.05))
+    }
+    for (const spring of springs) {
+      spring.setRestLength(0.12).setStiffness(30).setDamping(0.2)
+    }
+    return new SceneState(boxes, [anchor, new FixedCircle(11, new Vector(0.1, -0.1), 0.1)], {}, springs)
   }
 }

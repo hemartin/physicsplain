@@ -54,6 +54,25 @@ requestAnimationFrame(function frame (now) {
 })
 ```
 
+## Springs
+A `Spring` is a damped spring between two bodies. Each end sits at a point on its body, in the body's frame, by default its centre. To hang a body from a point in the world, attach the other end to a `FixedBody`. The spring does not move a fixed body, and the fixed body's velocity enters the damping. A game yields its springs from `getSprings()`:
+
+```js
+const anchor = new FixedBody('anchor').setOrigin(0, 0).finalize()
+const box = new Body('box').setOrigin(0, -1.2).finalize()
+
+const spring = new Spring(anchor, box)
+  .setLocalPointB(0, 0.05) // where on box, in its frame; default (0, 0)
+  .setRestLength(1)        // distance with no stretch force; default 0
+  .setStiffness(32)        // force per unit of stretch; default 0
+  .setDamping(0.63)        // force per unit/s along the spring; default 0
+
+// in the game's State
+* getSprings () { yield spring }
+```
+
+With `a` and `b` the two ends in the world, `n = (b − a) / |b − a|` and `va`, `vb` their velocities, the spring pushes body A with `(stiffness × (|b − a| − restLength) + damping × (vb − va) · n) × n` at `a` and body B with the opposite force at `b`. A spring acting off a body's centre also turns the body. Springs are stepped explicitly, like the other forces, so a spring is stable only while `√(stiffness / m) × timestep < 2` and `damping × timestep / m < 2`. Here `m` is the reduced mass `mA × mB / (mA + mB)`, or `mA` if body B is fixed. With the default timestep of 10 ms, a body of mass 1 on a spring to a fixed body needs a stiffness below 40000 and a damping below 200. Stay well below these limits for accurate motion.
+
 ## Deterministic Replays
 To replay a game, record each input with its step number (`state.steps`) and apply it in `postStep()`. Running the same steps with `state.step()`, e.g. on a server, then gives the same result, bit for bit, as long as the game:
 - changes bodies only in `postStep()`, not in event handlers or drawing code, and keeps `collideBodies()` free of side effects,
